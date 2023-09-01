@@ -1,13 +1,20 @@
+#include <stdint.h>
+
 class Encoder {
-private:
+public:
+    Encoder(){
+        counter = 0;
+        lastA = 0;
+        lastB = 0;
+    };
+    int position();
     int counter;
+    void updateCount(bool A, bool B);
+private:
+    
     bool lastA;
     bool lastB;
 
-public:
-    Encoder() : counter(0), lastA(false), lastB(false) {}
 
-    int getCount() const {}
 
-    void update(bool A, bool B) {}
 };
