@@ -7,14 +7,14 @@ int Encoder::position() {
 }
 
 void Encoder::updateCount(bool A, bool B) {
-    if (A != encoder.lastA && B == encoder.lastB) {
-        // A transitioned from low to high while B stayed the same
-        encoder.counter++;
-    } else if (B != encoder.lastB && A == encoder.lastA) {
-        // B transitioned from low to high while A stayed the same
-        encoder.counter--;
+    if(A != encoder.lastA) {
+        if(B != A) {
+            encoder.counter++;
+
+        }
+        else {
+            encoder.counter--;
+        }
     }
-    
     encoder.lastA = A;
-    encoder.lastB = B;
 }

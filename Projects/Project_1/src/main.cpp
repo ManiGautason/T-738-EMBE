@@ -11,13 +11,14 @@ int main(){
   A.init();    // Initialize LED pin
   B.init(); // Initialize button pin
   LED.init();
-  //Serial.begin(115200);
+  Serial.begin(115200);
   int count = 0;
   int countB = 0;
   while (1)
   {
     enc.updateCount(A.is_hi(),B.is_hi());
     countB = enc.position();
+    Serial.println(countB);
     if(count != countB) {
       LED.toggle();
       count = countB;
