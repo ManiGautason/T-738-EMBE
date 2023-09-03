@@ -8,7 +8,7 @@ public:
         lastB = 0;
     };
     int position();
-    int counter;
+    volatile int counter;
     void updateCount(bool A, bool B);
 private:
     

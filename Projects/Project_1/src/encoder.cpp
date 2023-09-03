@@ -7,7 +7,7 @@ int Encoder::position() {
 }
 
 void Encoder::updateCount(bool A, bool B) {
-    if(A != encoder.lastA) {
+    //if(A != encoder.lastA) {
         if(B != A) {
             encoder.counter++;
 
@@ -15,6 +15,6 @@ void Encoder::updateCount(bool A, bool B) {
         else {
             encoder.counter--;
         }
-    }
+    //}
     encoder.lastA = A;
 }
