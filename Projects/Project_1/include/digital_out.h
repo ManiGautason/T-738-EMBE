@@ -1,6 +1,3 @@
-//#ifndef DIGITAL_OUT_H
-//#define DIGITAL_OUT_H
-
 #include <avr/io.h>
 
 class Digital_out {
@@ -16,5 +13,3 @@ class Digital_out {
         uint8_t pinMask;
 
 };
-
-//#endif // DIGITAL_OUT_H

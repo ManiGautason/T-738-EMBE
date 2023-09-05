@@ -1,7 +1,3 @@
-// digital_in.h
-// #ifndef DIGITAL_IN_H
-// #define DIGITAL_IN_H
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -15,5 +11,3 @@ public:
 private:
   uint8_t pinMask;
 };
-
-// #endif // DIGITAL_IN_H
