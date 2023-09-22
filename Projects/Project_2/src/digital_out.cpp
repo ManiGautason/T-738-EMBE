@@ -1,21 +1,26 @@
 #include "digital_out.h"
-
-Digital_out::Digital_out(uint8_t pin) {
-  pinMask = 1 << pin;
+#include <avr/io.h>
+Digital_out::Digital_out(uint8_t pinNumber):pinMask(0) {
+    // Calculate the pin mask based on the pin number
+    pinMask = 1 << pinNumber;
 }
 
 void Digital_out::init() {
-  DDRB |= pinMask;    // Set the corresponding pin as an output
+    // Set the corresponding bit in the DDR register to make the pin an output
+    DDRB |= pinMask;
 }
 
 void Digital_out::set_hi() {
-  PORTB |= pinMask;     // Set the pin high
+    // Set the corresponding bit in the PORT register to set the pin high
+    PORTB |= pinMask;
 }
 
 void Digital_out::set_lo() {
-  PORTB &= ~pinMask;      // Set the pin low
+    // Clear the corresponding bit in the PORT register to set the pin low
+    PORTB &= ~pinMask;
 }
 
 void Digital_out::toggle() {
-  PORTB ^= pinMask;     // Toggle the pin state
+    // Toggle the corresponding bit in the PORT register
+    PORTB ^= pinMask;
 }

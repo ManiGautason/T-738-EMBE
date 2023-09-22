@@ -1,15 +1,19 @@
-#include <avr/io.h>
+#ifndef DIGITAL_OUT_H
+    #define DIGITAL_OUT_H
 
-class Digital_out {
+    #include <avr/io.h>
 
-    public:
-        Digital_out(uint8_t pin);
-        void init();
-        void set_hi();
-        void set_lo();
-        void toggle();
+    class Digital_out {
 
-    private:
-        uint8_t pinMask;
+        public:
+            Digital_out(uint8_t pin);
+            void init();
+            void set_hi();
+            void set_lo();
+            void toggle();
 
-};
+        private:
+            uint8_t pinMask;
+
+    };
+#endif
