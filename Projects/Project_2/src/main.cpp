@@ -57,17 +57,6 @@ void loop(){
     }
 
 
-  //RPM = (pulsesPerSecond * 60.0) / pulsesPerRevolution;
-
-    // countB = enc.position();
-    // if(count != countB) {
-    //   count = countB;
-    //   StateChangeTime = millis();
-    //   StatePeriod = StateChangeTime - PreviousStateChangeTime;
-    //   PreviousStateChangeTime = StateChangeTime;
-    //   Serial.print('RPM: ');
-    //   Serial.println(60000/(StatePeriod * 14 * 100* 2));
-    // }
 }
   
 // Define the ISR for INT0 (external interrupt)
