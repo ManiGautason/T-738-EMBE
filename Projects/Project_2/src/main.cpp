@@ -17,8 +17,9 @@ int countB = 0;
 unsigned long StateChangeTime = 0;
 unsigned long PreviousStateChangeTime = 0;
 unsigned long StatePeriod = 0;
-unsigned long previousMillis = 0;
+unsigned long previousTime = 0;
 const unsigned long interval = 10; // 1 second (in milliseconds)
+
 void setup(){
     Serial.begin(115200);
     A.initINT();    // Initialize A signal as interrupt
@@ -29,34 +30,17 @@ void setup(){
 }
 void loop(){
 
-  // unsigned long currentMillis = millis();
-  // count = enc.position();
-  // // Serial.println(count);
-  // while(previousMillis - currentMillis <= interval) {
-  //   // It's been 1 second, perform your action here
-  //   previousMillis = millis();
-  //   countB = enc.position();
-  //   // Update the previousMillis to the current time for the next interval
-  //   //previousMillis = currentMillis;
-  // }
-  // int PulsesPerSecond = countB - count;
-  // float RPM = ((float)PulsesPerSecond * 100 / (14.0 * 100.0)) * 60.0;
-  // int RPMint = int(RPM);
-  // //float RPM = (PulsesPerSecond / (7) * 60.0);
-  // Serial.println(RPMint);
-  // Serial.print("Pulses per 10 ms: ");
-  // Serial.println(enc.speedPPS());
-  unsigned long currentMillis = millis();
-    if(currentMillis - previousMillis >= 1000) {
-    // It's been 1 second, perform your action here
+  int PPScount = enc.speedPPS();
+  int RPMcount = enc.speedRPM();
+
+  unsigned long currentTime = millis();
+    if(currentTime - previousTime >= 1000) {
         Serial.print("PPtenms: ");
-        Serial.println(enc.speedPPS());
-        previousMillis = millis();
-    // Update the previousMillis to the current time for the next interval
-    //previousMillis = currentMillis;
+        Serial.println(PPScount);
+        Serial.print("RPM: ");
+        Serial.println(RPMcount);
+        previousTime = millis();
     }
-
-
 }
   
 // Define the ISR for INT0 (external interrupt)
