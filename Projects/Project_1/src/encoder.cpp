@@ -10,11 +10,10 @@ void Encoder::updateCount(bool A, bool B) {
     //if(A != encoder.lastA) {
         if(B != A) {
             encoder.counter++;
-
         }
         else {
             encoder.counter--;
         }
     //}
-    encoder.lastA = A;
+    //encoder.lastA = A;
 }

@@ -21,15 +21,17 @@ int main(){
   int countB = 0;
   while (1)
    {
-  //   enc.updateCount(A.is_hi(),B.is_hi());
-  //   countB = enc.position();
-  //   Serial.println(countB);
-  //   if(count != countB) {
-  //     LED.toggle();
-  //     count = countB;
-  //   }
+    //enc.updateCount(A.is_hi(),B.is_hi());
     countB = enc.position();
-    Serial.println(countB);
+    //Serial.println(countB);
+    if(count != countB) {
+      count = countB;
+      LED.toggle();
+      
+      Serial.println(countB);
+    }
+    //countB = enc.position();
+    //Serial.println(countB);
   } 
 }
   
