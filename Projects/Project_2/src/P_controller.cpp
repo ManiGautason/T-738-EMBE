@@ -10,8 +10,8 @@ uint8_t P_controller::update(double ref, double actual){
   
   double u=k_p*(ref-actual)/max_rpm_;
   u = u*max_pwm_;
-  if (u>255) u=255;
-  if (u<0) u=0;
+  if (u>255) u=250;
+  if (u<0) u=10;
 
   return (uint8_t)u;
 }
