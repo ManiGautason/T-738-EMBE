@@ -44,16 +44,18 @@ void Encoder::updateCount(bool A, bool B) {
 float Encoder::speedPPS() {
     unsigned long currentTime = millis();
     unsigned long deltaTime = currentTime - prevTime;
-    float pps = static_cast<float>(counter) / deltaTime * 1000.0;
-    prevTime = currentTime;
-    return pps;
+    if (deltaTime != 0){
+        float pps = float(counter) / deltaTime * 1000.0;
+        prevTime = currentTime;
+        return pps;
+    }
+
 }
 
 float Encoder::speedRPM() {
+    // Define the number of encoder pulses per revolution (you need to replace this value)
+    const int encoder_pulses_per_revolution = 1000; // Replace with your encoder's value
     float pps = speedPPS();
     float rpm = pps / (encoder_pulses_per_revolution / 2) * 60.0;
     return rpm;
 }
-
-// Define the number of encoder pulses per revolution (you need to replace this value)
-const int encoder_pulses_per_revolution = 1000; // Replace with your encoder's value

@@ -20,19 +20,36 @@ int main(){
   int count = 0;
   int countB = 0;
   while (1)
-   {
-    //enc.updateCount(A.is_hi(),B.is_hi());
-    countB = enc.position();
-    //Serial.println(countB);
-    if(count != countB) {
-      count = countB;
-      LED.toggle();
-      
-      Serial.println(countB);
+  {
+    unsigned long time_now = millis();
+
+    count = enc.position();
+    Serial.println(count);
+    // delay(1000);
+    while (millis() < (time_now + 1000)){
+      countB = enc.position();
+      Serial.println("here");
+
     }
-    //countB = enc.position();
-    //Serial.println(countB);
-  } 
+    Serial.println("not here");
+    Serial.println(countB-count);
+
+    
+
+
+
+    // countB = enc.position();
+    // if(count != countB) {
+    //   count = countB;
+    //   LED.toggle();
+    //   Serial.print("Speed PPS: ");
+      // Serial.println(enc.speedPPS());
+      // Serial.print("Speed RPM: ");
+      // Serial.println(enc.speedRPM()); 
+
+    // }
+  }
+
 }
   
 // Define the ISR for INT0 (external interrupt)
