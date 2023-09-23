@@ -8,7 +8,7 @@ class Analog_out
 {
 public:
     Analog_out(int pin);
-    void init(int period_ms = 10);
+    void init(int period_ms = 2);
     void set(float duty_cycle);
 
 private:

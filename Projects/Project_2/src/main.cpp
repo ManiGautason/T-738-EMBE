@@ -7,7 +7,7 @@
 #include <analog_out.h>
 #include <P_controller.h>
 Analog_out analog(4);
-P_controller Pcon( 1.7,120,255);
+P_controller Pcon( 3,120,255);
 Encoder enc;
 Digital_in A(2);//PD2 for the signal A, D2
 Digital_in B(3);//PD3 for the signal B, D3
@@ -42,19 +42,19 @@ void loop(){
   int RPMcount = enc.speedRPM();
 
   unsigned long currentTime = millis();
-    if(currentTime - previousTime >= 10) {
+    if(currentTime - previousTime >= 1) {
         Serial.print("PPtenms: ");
         Serial.println(PPScount);
         Serial.print("RPM: ");
         Serial.println(RPMcount);
         previousTime = millis();
         Serial.println(U);
-        U = Pcon.update(50,RPMcount);
+        U = Pcon.update(90,RPMcount);
         PWM = (1.0/255.0)*float(U);
         analog.set(PWM);
     }
 
-  //analog.set(0.5);
+  
 
 }
   
