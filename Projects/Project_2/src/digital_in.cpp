@@ -11,7 +11,7 @@ void Digital_in::init() {
 }
 void Digital_in::initINT() {
   DDRD &= ~pinMask;     // Set the corresponding pin as an input
-  EIMSK |= (1 << INT0);
+  EIMSK |= (1 << INT0); 
   EICRA |= (1 << ISC01) | (1 << ISC00);
 }
 

@@ -17,13 +17,14 @@ Digital_in B(3);//PD3 for the signal B, D3
 int count = 0;
 int countA = 0;
 int countB = 0;
-int U = 0;
+int PV = 0;
 float PWM = 0;
 unsigned long StateChangeTime = 0;
 unsigned long PreviousStateChangeTime = 0;
 unsigned long StatePeriod = 0;
 unsigned long previousTime = 0;
 const unsigned long interval = 10; // 1 second (in milliseconds)
+int setpoint = 90;
 
 void setup(){
     Serial.begin(115200);
@@ -43,14 +44,18 @@ void loop(){
 
   unsigned long currentTime = millis();
     if(currentTime - previousTime >= 1) {
-        Serial.print("PPtenms: ");
-        Serial.println(PPScount);
-        Serial.print("RPM: ");
-        Serial.println(RPMcount);
+        //Serial.print("PPtenms: ");
+        //Serial.println(PPScount);
+        //Serial.print("RPM: ");
+        Serial.print(setpoint);
+        Serial.print(",");
+        Serial.print(RPMcount);
+        Serial.print(",");
         previousTime = millis();
-        Serial.println(U);
-        U = Pcon.update(90,RPMcount);
-        PWM = (1.0/255.0)*float(U);
+        Serial.print(PV);
+        Serial.println();
+        PV = Pcon.update(setpoint,RPMcount);
+        PWM = (1.0/255.0)*float(PV);
         analog.set(PWM);
     }
 

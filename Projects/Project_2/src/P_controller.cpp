@@ -10,8 +10,8 @@ int P_controller::update(double Setpoint, double curent_Val){
   
   double u=k_p*(Setpoint-curent_Val)/max_rpm_;
   u = u*max_pwm_;
-  if (u>255) u=250;
-  if (u<0) u=10;
+  if (u>255) u=254;
+  if (u<0) u=1;
 
   return (int)u;
 }
