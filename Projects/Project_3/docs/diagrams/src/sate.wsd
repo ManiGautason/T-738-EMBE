@@ -3,8 +3,7 @@
 ' [*] -->  Initialization : Init
 
 state Initialization {
-    Initialization: entry / greenOn
-    Initialization: exit / greenOff
+
 }
 
 Initialization --> Operational
