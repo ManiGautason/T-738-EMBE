@@ -16,11 +16,15 @@ void StopState::on_exit() {
 }
 
 void StopState::on_reset() {
-    this->context_->transition_to(new InitState);
+    //this->context_->transition_to(new InitState);
+}
+
+void StopState::on_stop() {
+    //this->context_->transition_to(new InitState);
 }
 
 void StopState::on_back_to_OpState() {
-    this->context_->transition_to(new OpState);
+    //this->context_->transition_to(new OpState);
 }
 
 void StopState::on_back_to_PreOpState() {

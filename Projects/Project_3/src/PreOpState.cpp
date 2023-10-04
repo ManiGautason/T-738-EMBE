@@ -18,15 +18,18 @@ void PreOpState::on_exit() {
 }
 
 void PreOpState::on_reset() {
-    this->context_->transition_to(new InitState);
+    //this->context_->transition_to(new InitState);
 }
 
 void PreOpState::on_stop() {
     // optionally do something on transition
-    this->context_->transition_to(new StopState);
+    //this->context_->transition_to(new StopState);
 }
 
 void PreOpState::on_back_to_OpState() {
     //this->context_->transition_to();
 }
 
+void PreOpState::on_back_to_PreOpState() {
+    //this->context_->transition_to();
+}

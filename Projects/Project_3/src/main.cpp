@@ -2,10 +2,11 @@
 #include "digital_in.h"
 #include "State.h"
 #include "Context.h"
-#include "OpState.h"
 #include "InitState.h"
-#include "StopState.h"
 #include "PreOpState.h"
+#include "OpState.h"
+#include "StopState.h"
+
 
 
 Context *context;
@@ -28,7 +29,7 @@ void loop() {
             initFlag = 1; // Reset timer flag
             // Serial.println("Initializing Motor"); 
             context->do_work(); // Yellow: Initialize timer
-            context->event2(); // Yellow to Red
+            context->back_to_PreOpState(); // Yellow to Red
         }
 
 
@@ -45,7 +46,7 @@ void loop() {
                 if (command == 'r'){
                     initFlag = 0;
                     Serial.println("Executing Reset Command");
-                    context->event1(); // From current state to initial state 
+                    context->reset(); // From current state to initial state 
                 }
 
             }
