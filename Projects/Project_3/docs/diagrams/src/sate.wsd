@@ -1,0 +1,18 @@
+@startuml state_diagram
+
+' [*] -->  Initialization : Init
+
+state Initialization {
+
+}
+
+Initialization --> Operational
+
+
+state Operational {
+    Operational: entry / greenLEDon
+    Operational: exit / greenLEDOff
+}
+
+Operational --> Initialization : reset
+@enduml
