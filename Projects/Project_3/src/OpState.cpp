@@ -3,8 +3,12 @@
 #include "Arduino.h"
 #include "OpState.h"
 #include "StopState.h"
+#include "analog_out.h"
+#include "encoder.h"
+#include "digital_in.h"
 
 void OpState::on_do() {
+    analog.set(0.7);
 }
 
 void OpState::on_entry() {
@@ -16,7 +20,7 @@ void OpState::on_exit() {
 }
 
 void OpState::on_reset() {
-    //this->context_->transition_to(new InitState);
+    this->context_->transition_to(new InitState);
 }
 
 void OpState::on_stop() {
