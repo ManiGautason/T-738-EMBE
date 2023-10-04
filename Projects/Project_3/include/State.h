@@ -17,6 +17,7 @@ protected:
     Context *context_;
 
 public:
+    virtual int get_state_id() = 0;
     virtual ~State();
     void set_context(Context *context);
     virtual void on_do() = 0;

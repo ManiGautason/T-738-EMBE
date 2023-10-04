@@ -1,9 +1,7 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-// Include necessary headers
-
-class State;
+#include "State.h"
 
 class Context {
 private:
@@ -19,7 +17,7 @@ public:
     void stop();
     void back_to_OpState();
     void back_to_PreOpState();
-
+    int get_current_state_id();
 };
 
-#endif // CONTEXT_H
+#endif 

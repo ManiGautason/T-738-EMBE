@@ -45,3 +45,7 @@ void Context::back_to_OpState() {
 void Context::back_to_PreOpState() {
     this->state_->on_back_to_PreOpState();
 }
+
+int Context::get_current_state_id() {
+    return state_->get_state_id();
+}

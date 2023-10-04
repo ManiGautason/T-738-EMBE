@@ -13,7 +13,10 @@ public:
     void on_stop() override;
     void on_back_to_OpState() override;
     void on_back_to_PreOpState() override;
-
+    static const int INIT_STATE = 1;
+    int get_state_id() override {
+            return INIT_STATE;
+        }
 };
 
 

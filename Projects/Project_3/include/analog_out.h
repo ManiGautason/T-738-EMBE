@@ -17,5 +17,5 @@ public:
     Digital_out pin;
 };
 
-#endif // ANALOG_OUT_H
+#endif
 
