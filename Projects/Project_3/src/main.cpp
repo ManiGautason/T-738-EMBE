@@ -20,6 +20,7 @@
 
 Context *context;
 
+
 Digital_in A(2);        //PD2 for the signal A, D2
 Digital_in B(3);        //PD3 for the signal B, D3
 Digital_in flt_pin(4);  //PD4 for the motor controller fault
@@ -37,119 +38,116 @@ void setup() {
 }
 
 void loop() {
-    static int current_state = INIT_STATE;  // Initialize to INIT_STATE
+    // Initialize the state machine in the Initialization state
+    if (initFlag == 0) {
+        initFlag = 1; // Reset initialization flag
 
-    // Handle state transitions
-    switch (current_state) {
-        case INIT_STATE:
-            // Initialize the state machine in the Initialization state
-            if (current_state == INIT_STATE) {
-                // Transition to the Initialization state
-                context = new Context(new InitState);
-                Serial.println("Initializing Motor");
+        // Transition to the Initialization state
+        context = new Context(new InitState);
+        Serial.println("Initializing Motor");
 
-                // Perform initialization tasks
-                context->do_work();
+        // Perform initialization tasks
+        context->do_work();
 
-                // Transition to the Pre-operational state
-                context->back_to_PreOpState();
-                current_state = PRE_OP_STATE;
-            }
-            break;
+        // Transition to the Pre-operational state
+        context->back_to_PreOpState();
+        PreOpFlag = 1;
+    }
 
-        case PRE_OP_STATE:
-            // Handle configuration commands and transitions
-            if (Serial.available() > 0) {
-                char command = Serial.read();
-                Serial.print("I received: ");
-                Serial.println(command);
+    // Check for fault condition
+    if (flt_pin.is_lo() && stopFlag == 0) {
+        stopFlag = 1;
 
-                switch (command) {
-                    case 's':
-                        // Transition to Operational state
-                        opFlag = 1;
-                        PreOpFlag = 0;
-                        context->transition_to(new OpState);
-                        current_state = OP_STATE;
-                        break;
+        // Transition to the Stopped state
+        context->stop();
+    }
 
-                    case 'r':
-                        // Reset to Initialization state
-                        current_state = INIT_STATE;
-                        break;
+    // Handle fault recovery
+    if (flt_pin.is_hi() && stopFlag == 1) {
+        stopFlag = 0;
 
-                    // Handle other commands as needed
-                    default:
-                        break;
+        // Transition to the appropriate state based on flags
+        if (PreOpFlag == 1 && opFlag == 0) {
+            context->back_to_PreOpState();
+        }
+        if (PreOpFlag == 0 && opFlag == 1) {
+            context->back_to_OpState();
+        }
+    }
+
+    // Handle serial commands
+    if (Serial.available() > 0) {
+        char command = Serial.read();
+        Serial.print("I received: ");
+        Serial.println(command);
+
+        // Handle commands based on the current state
+        switch (context->get_current_state_id()) {
+            case INIT_STATE:
+                Serial.print("INIT_STATE");
+                if (command == 'r') {
+                    initFlag = 0;
+                    Serial.println("Executing Reset Command");
+                    context->reset(); // Transition to Initialization state
                 }
-            }
-            break;
+                break;
 
-        case OP_STATE:
-            // Handle operational commands and transitions
-            if (Serial.available() > 0) {
-                char command = Serial.read();
-                Serial.print("I received: ");
-                Serial.println(command);
+            case PRE_OP_STATE:
+                Serial.print("PRE_OP_STATE");
+                // Handle configuration commands and transitions
+                if (command == 's') {
+                    // Transition to Operational state
+                    opFlag = 1;
+                    PreOpFlag = 0;
+                    context->transition_to(new OpState);
+                } else if (command == 'r') {
+                    initFlag = 0;
+                    Serial.println("Executing Reset Command");
+                    context->reset(); // Transition to Initialization state
+                }
+                break;
 
-                switch (command) {
-                    case 'p':
-                        // Transition to Pre-operational state
-                        opFlag = 0;
-                        PreOpFlag = 1;
+            case OP_STATE:
+                Serial.print("OP_STATE");
+                // Handle operational commands and transitions
+                if (command == 'p') {
+                    // Transition to Pre-operational state
+                    opFlag = 0;
+                    PreOpFlag = 1;
+                    context->transition_to(new PreOpState);
+                } else if (command == 'r') {
+                    initFlag = 0;
+                    Serial.println("Executing Reset Command");
+                    context->reset(); // Transition to Initialization state
+                }
+                break;
+
+            case STOP_STATE:
+                Serial.print("STOP_STATE");
+                // Handle commands and transitions in the Stopped state
+                if (command == 'c') {
+                    // Transition back to the appropriate state
+                    if (PreOpFlag == 1) {
                         context->transition_to(new PreOpState);
-                        current_state = PRE_OP_STATE;
-                        break;
-
-                    case 'r':
-                        // Reset to Initialization state
-                        current_state = INIT_STATE;
-                        break;
-
-                    // Handle other commands as needed
-                    default:
-                        break;
+                    } else if (opFlag == 1) {
+                        context->transition_to(new OpState);
+                    }
                 }
-            }
-            break;
+                break;
 
-        case STOP_STATE:
-            // Handle commands and transitions in the Stopped state
-            if (Serial.available() > 0) {
-                char command = Serial.read();
-                Serial.print("I received: ");
-                Serial.println(command);
-
-                switch (command) {
-                    case 'c':
-                        // Transition back to the appropriate state
-                        if (PreOpFlag == 1) {
-                            context->transition_to(new PreOpState);
-                            current_state = PRE_OP_STATE;
-                        } else if (opFlag == 1) {
-                            context->transition_to(new OpState);
-                            current_state = OP_STATE;
-                        }
-                        break;
-
-                    // Handle other commands as needed
-                    default:
-                        break;
-                }
-            }
-            break;
-
-        default:
-            // Handle other states or commands as needed
-            break;
+            default:
+                // Handle other states or commands as needed
+                break;
+        }
     }
 
     // Continue performing tasks within the current state
     context->do_work();
+    // Handle interrupts or other tasks as needed
 
-
+    // Delete the context to avoid memory leaks
+    //delete context;
 }
-
 
 // Define the ISR for INT0 (external interrupt)
 ISR(INT0_vect) {
