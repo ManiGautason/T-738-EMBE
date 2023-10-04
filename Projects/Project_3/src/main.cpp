@@ -6,7 +6,7 @@
 
 Context *context;
 
-int timerFlag = 0;
+int initFlag = 0;
 
 void setup() {
     Serial.begin(9600);
@@ -14,12 +14,11 @@ void setup() {
 
 void loop() {
 
-    Serial.println("Initializing Motor");
-    Serial.println("Initializing Green State"); 
-    context = new Context(new InitState);
 
+    context = new Context(new InitState);
     context->do_work(); // Green to Yellow
     context->event2(); // Green to Yellow
+
 
     while (true) {
 
@@ -32,13 +31,15 @@ void loop() {
                 Serial.print("I received: ");
                 Serial.println(command);
 
-                if(timerFlag == 1){
-                    context->do_work(); // Yellow: Initialize timer
-                    timerFlag = 0; // Reset timer flag
-                    context->event1(); // Yellow to Red
-                }
+                // if(initFlag == 0){
+                //     Serial.println("Initializing Motor"); 
+                //     context->do_work(); // Yellow: Initialize timer
+                //     initFlag = 1; // Reset timer flag
+                //     context->event1(); // Yellow to Red
+                // }
 
                 if (command == 'r'){
+                    initFlag = 0;
                     Serial.println("Executing Reset Command");
 
                 }
