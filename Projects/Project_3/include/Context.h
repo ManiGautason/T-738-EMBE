@@ -1,6 +1,8 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
+// Include necessary headers
+
 class State;
 
 class Context {
@@ -17,6 +19,7 @@ public:
     void stop();
     void back_to_OpState();
     void back_to_PreOpState();
+
 };
 
 #endif // CONTEXT_H

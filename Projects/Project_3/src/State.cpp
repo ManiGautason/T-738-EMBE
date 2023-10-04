@@ -1,5 +1,8 @@
 #include "State.h"
 
+Analog_out State::analog(4);
+Digital_out State::LED(5);
+
 State::~State() {
 }
 

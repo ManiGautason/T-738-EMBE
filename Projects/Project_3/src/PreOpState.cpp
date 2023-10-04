@@ -7,23 +7,33 @@
 
 
 void PreOpState::on_do() {
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - previousMillis >= interval) {
+        // Save the last time you blinked the LED
+        previousMillis = currentMillis;
+        LED.toggle(); // Toggle the LED state
+    }
 }
 
 void PreOpState::on_entry() {
-    Serial.println("Operational state entry: turn ON GREEN LIGHT");
+    Serial.println("PreOp state entry:");
+    previousMillis = millis(); // Initialize previousMillis
+    LED.init(); // Initialize the LED
+
 }
 
 void PreOpState::on_exit() {
-    Serial.println("Operational state exit: turn OFF GREEN LIGHT");
+    Serial.println("PreOp state exit:");
 }
 
 void PreOpState::on_reset() {
-    //this->context_->transition_to(new InitState);
+    this->context_->transition_to(new InitState);
 }
 
 void PreOpState::on_stop() {
     // optionally do something on transition
-    //this->context_->transition_to(new StopState);
+    this->context_->transition_to(new StopState);
 }
 
 void PreOpState::on_back_to_OpState() {

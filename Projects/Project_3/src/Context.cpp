@@ -1,6 +1,11 @@
 #include "Context.h"
 #include "State.h"
+#include "InitState.h" 
+#include "PreOpState.h"
+#include "OpState.h"
+#include "StopState.h"
 #include "Arduino.h"
+
 Context::Context(State *state) : state_(nullptr) {
     this->transition_to(state);
 }

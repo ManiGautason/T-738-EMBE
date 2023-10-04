@@ -2,6 +2,7 @@
 #define INIT_STATE_H
 
 #include "State.h"
+#include "analog_out.h"
 
 class InitState : public State {
 public:
@@ -12,6 +13,7 @@ public:
     void on_stop() override;
     void on_back_to_OpState() override;
     void on_back_to_PreOpState() override;
+
 };
 
 

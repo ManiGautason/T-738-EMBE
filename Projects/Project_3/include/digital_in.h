@@ -1,16 +1,20 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#ifndef DIGITAL_IN_H
+#define DIGITAL_IN_H
 
-class Digital_in {
+  #include <avr/io.h>
+  #include <avr/interrupt.h>
 
-  public:
-    Digital_in(uint8_t pin);
-    void init();
-    bool is_hi();
-    bool is_lo();
-    void initINT(); 
-  
-  private:
-    uint8_t pinMask;
+  class Digital_in {
 
-};
+    public:
+      Digital_in(uint8_t pin);
+      void init();
+      bool is_hi();
+      bool is_lo();
+      void initINT(); 
+    
+    private:
+      uint8_t pinMask;
+
+  };
+#endif

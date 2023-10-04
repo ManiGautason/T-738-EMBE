@@ -7,6 +7,8 @@
  */
 #ifndef STATE_H
 #define STATE_H
+#include "analog_out.h"
+#include "digital_out.h"
 
 class Context;
 
@@ -24,6 +26,9 @@ public:
     virtual void on_stop() = 0;
     virtual void on_back_to_OpState() = 0;
     virtual void on_back_to_PreOpState() = 0;
+
+    static Analog_out analog;
+    static Digital_out LED;
     
 };
 
