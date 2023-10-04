@@ -17,10 +17,22 @@ void setup(){
     Serial.begin(115200);
     sei();
     Serial.println("Setpoint, RPM, PWM");
+    context = new Context(new InitState);
 }
-void loop(){
 
+void loop(){  
+
+  if (Serial.available() > 0)
+      {
+        // read the incoming byte:
+        command = Serial.read();
+
+        // say what you got:
+        Serial.print("I received: ");
+        Serial.println(command); 
+      }
 }
+    
   
 // Define the ISR for INT0 (external interrupt)
 ISR(INT0_vect) {

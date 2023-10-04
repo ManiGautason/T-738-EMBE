@@ -1,22 +1,25 @@
 #include "InitState.h"
+#include "OpState.h"
 #include "Context.h"
 #include "Arduino.h"
 
-void GreenState::on_do() {
+void InitState::on_do() {
+     Serial.println("Init state: initializing device...");
 }
 
-void GreenState::on_entry() {
-    Serial.println("Greenstate entry: turn ON GREEN LIGHT");
+void InitState::on_entry() {
+    Serial.println("Init state entry");
+    
 }
 
-void GreenState::on_exit() {
-    Serial.println("Greenstate exit: turn OFF GREEN LIGHT");
+void InitState::on_exit() {
+    Serial.println("Init state exit");
 }
 
-void GreenState::on_event1() {
+void InitState::on_event1() {
 }
 
-void GreenState::on_event2() {
+void InitState::on_event2() {
     // optionally do something on transition
-    this->context_->transition_to(new YellowState);
+    this->context_->transition_to(new OpState);
 }
