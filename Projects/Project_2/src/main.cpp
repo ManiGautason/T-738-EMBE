@@ -7,7 +7,7 @@
 #include <analog_out.h>
 #include <P_controller.h>
 Analog_out analog(4);
-P_controller Pcon( 3,120,255);
+P_controller Pcon(7,120,255);
 Encoder enc;
 Digital_in A(2);//PD2 for the signal A, D2
 Digital_in B(3);//PD3 for the signal B, D3
@@ -23,8 +23,9 @@ unsigned long StateChangeTime = 0;
 unsigned long PreviousStateChangeTime = 0;
 unsigned long StatePeriod = 0;
 unsigned long previousTime = 0;
+unsigned long previousTimeStep = 0;
 const unsigned long interval = 10; // 1 second (in milliseconds)
-int setpoint = 90;
+int setpoint = 0;
 
 void setup(){
     Serial.begin(115200);
@@ -35,10 +36,10 @@ void setup(){
     analog.set(0.99); // default value is 0.5
     // Enable global interrupts
     sei();
-
+    Serial.println("Setpoint, RPM, PWM");
 }
 void loop(){
-
+  
   int PPScount = enc.speedPPS();
   int RPMcount = enc.speedRPM();
 
@@ -47,6 +48,7 @@ void loop(){
         //Serial.print("PPtenms: ");
         //Serial.println(PPScount);
         //Serial.print("RPM: ");
+        
         Serial.print(setpoint);
         Serial.print(",");
         Serial.print(RPMcount);
@@ -59,7 +61,10 @@ void loop(){
         analog.set(PWM);
     }
 
-  
+    unsigned long currentTimeStep = millis();
+    if(currentTimeStep - previousTimeStep >= 10000) {
+      setpoint = 90;
+    }
 
 }
   
