@@ -10,7 +10,6 @@ state Initialization {
 
 Initialization --> Operational
 
-
 state Operational {
     Operational: entry / greenLEDon
     Operational: do / Normal input-output behavior
