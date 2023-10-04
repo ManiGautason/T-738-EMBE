@@ -20,17 +20,15 @@ void setup() {
 
 void loop() {
 
-
     context = new Context(new InitState);
-    context->do_work(); // Green to Yellow
-    context->back_to_PreOpState(); // Green to Yellow
-
 
     while (true) {
 
-        // Check if Fault in motor controller
-        if (flt_pin.is_lo()){
-            context->stop();
+        if(initFlag == 0){
+            initFlag = 1; // Reset timer flag
+            // Serial.println("Initializing Motor"); 
+            context->do_work(); // Yellow: Initialize timer
+            context->event2(); // Yellow to Red
         }
 
 
@@ -43,17 +41,11 @@ void loop() {
                 Serial.print("I received: ");
                 Serial.println(command);
 
-                // if(initFlag == 0){
-                //     Serial.println("Initializing Motor"); 
-                //     context->do_work(); // Yellow: Initialize timer
-                //     initFlag = 1; // Reset timer flag
-                //     context->event1(); // Yellow to Red
-                // }
 
                 if (command == 'r'){
                     initFlag = 0;
                     Serial.println("Executing Reset Command");
-
+                    context->event1(); // From current state to initial state 
                 }
 
             }
