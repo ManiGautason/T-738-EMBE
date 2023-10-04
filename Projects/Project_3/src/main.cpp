@@ -62,19 +62,6 @@ void loop() {
         context->stop();
     }
 
-    // Handle fault recovery
-    if (flt_pin.is_hi() && stopFlag == 1) {
-        stopFlag = 0;
-
-        // Transition to the appropriate state based on flags
-        if (PreOpFlag == 1 && opFlag == 0) {
-            context->back_to_PreOpState();
-        }
-        if (PreOpFlag == 0 && opFlag == 1) {
-            context->back_to_OpState();
-        }
-    }
-
     // Handle serial commands
     if (Serial.available() > 0) {
         char command = Serial.read();
@@ -126,6 +113,7 @@ void loop() {
                 Serial.print("STOP_STATE");
                 // Handle commands and transitions in the Stopped state
                 if (command == 'c') {
+                    stopFlag = 0;
                     // Transition back to the appropriate state
                     if (PreOpFlag == 1) {
                         context->transition_to(new PreOpState);
