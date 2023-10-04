@@ -1,52 +1,50 @@
-#include <encoder.h>
-#include "digital_in.h"
-#include <util/delay.h>
-#include <digital_out.h>
 #include <Arduino.h>
-#include <avr/interrupt.h>
-#include <analog_out.h>
+#include "State.h"
+#include "Context.h"
+#include "OpState.h"
+#include "InitState.h"
 
-Analog_out analog(4);
-Encoder enc;
-Digital_in A(2);//PD2 for the signal A, D2
-Digital_in B(3);//PD3 for the signal B, D3
+Context *context;
 
+int timerFlag = 0;
 
+void setup() {
+    Serial.begin(9600);
+}
 
-void setup(){
-    Serial.begin(115200);
-    sei();
-    Serial.println("Setpoint, RPM, PWM");
+void loop() {
+
+    Serial.println("Initializing Motor");
+    Serial.println("Initializing Green State"); 
     context = new Context(new InitState);
-}
 
-void loop(){  
+    context->do_work(); // Green to Yellow
+    context->event2(); // Green to Yellow
 
-  if (Serial.available() > 0)
-      {
-        // read the incoming byte:
-        command = Serial.read();
+    while (true) {
 
-        // say what you got:
-        Serial.print("I received: ");
-        Serial.println(command); 
-      }
-}
-    
-  
-// Define the ISR for INT0 (external interrupt)
-ISR(INT0_vect) {
-    // Call your interrupt action function
-    enc.updateCount(A.is_hi(),B.is_hi());
-    //Serial.println("A");
-}
-ISR (TIMER1_COMPA_vect)
-{
-// action to be taken at the start of the on-cycle
-  analog.pin.set_hi();
-}
-ISR (TIMER1_COMPB_vect)
-{
-// action to be taken at the start of the off-cycle
-  analog.pin.set_lo();
+        if (Serial.available() > 0)
+            {
+                // read the incoming byte:
+                char command = Serial.read();
+
+                // say what you got:
+                Serial.print("I received: ");
+                Serial.println(command);
+
+                if(timerFlag == 1){
+                    context->do_work(); // Yellow: Initialize timer
+                    timerFlag = 0; // Reset timer flag
+                    context->event1(); // Yellow to Red
+                }
+
+                if (command == 'r'){
+                    Serial.println("Executing Reset Command");
+
+                }
+
+            }
+    }
+
+        delete context;
 }
