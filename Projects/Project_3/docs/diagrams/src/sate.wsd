@@ -3,7 +3,9 @@
 ' [*] -->  Initialization : Init
 
 state Initialization {
-
+    Initialization: entry
+    Initialization: do / Initialize internal parameters
+    Initialization: exit
 }
 
 Initialization --> Operational
@@ -11,6 +13,7 @@ Initialization --> Operational
 
 state Operational {
     Operational: entry / greenLEDon
+    Operational: do / Normal input-output behavior
     Operational: exit / greenLEDOff
 }
 
