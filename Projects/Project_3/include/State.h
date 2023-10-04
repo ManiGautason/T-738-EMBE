@@ -20,8 +20,10 @@ public:
     virtual void on_do() = 0;
     virtual void on_entry() = 0;
     virtual void on_exit() = 0;
-    virtual void on_event1() = 0;
-    virtual void on_event2() = 0;
+    virtual void on_reset() = 0;
+    virtual void on_stop() = 0;
+    virtual void on_back_to_OpState() = 0;
+    virtual void on_back_to_PreOpState() = 0;
     
 };
 

@@ -25,10 +25,18 @@ void Context::do_work() {
     this->state_->on_do();
 }
 
-void Context::event1() {
-    this->state_->on_event1();
+void Context::reset() {
+    this->state_->on_reset();
 }
 
-void Context::event2() {
-    this->state_->on_event2();
+void Context::stop() {
+    this->state_->on_stop();
+}
+
+void Context::back_to_OpState() {
+    this->state_->on_back_to_OpState();
+}
+
+void Context::back_to_PreOpState() {
+    this->state_->on_back_to_PreOpState();
 }

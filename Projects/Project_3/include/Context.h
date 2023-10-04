@@ -13,9 +13,10 @@ public:
 
     void transition_to(State *state);
     void do_work();
-    void event1();
-    void event2();
-    
+    void reset();
+    void stop();
+    void back_to_OpState();
+    void back_to_PreOpState();
 };
 
 #endif // CONTEXT_H
