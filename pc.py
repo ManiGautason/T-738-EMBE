@@ -8,7 +8,7 @@ y_values = []
 z_values = []
 
 # Read the data from the file
-with open('pcontroll.dat', 'r') as file:
+with open('p_response.dat', 'r') as file:
     for line in file:
         # Split each line into three values
         values = line.strip().split(',')
@@ -32,6 +32,6 @@ plt.ylabel('Value')
 plt.legend()
 
 # Show the plot
-plt.title('Time Series Plot of Data')
+plt.title('Step response with P=3. ')
 plt.grid(True)
 plt.show()
