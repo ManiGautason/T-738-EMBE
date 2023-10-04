@@ -1,9 +1,9 @@
-#ifndef GREEN_STATE_H
-#define GREEN_STATE_H
+#ifndef OP_STATE_H
+#define OP_STATE_H
 
 #include "State.h"
 
-class GreenState : public State {
+class OpState : public State {
 public:
     void on_do() override;
     void on_entry() override;

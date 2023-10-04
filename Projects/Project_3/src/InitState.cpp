@@ -1,6 +1,4 @@
-#include "GreenState.h"
-#include "YellowState.h"
-#include "RedState.h"
+#include "InitState.h"
 #include "Context.h"
 #include "Arduino.h"
 

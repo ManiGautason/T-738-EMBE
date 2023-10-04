@@ -5,9 +5,9 @@
 #include <Arduino.h>
 #include <avr/interrupt.h>
 #include <analog_out.h>
-#include <P_controller.h>
+//#include <P_controller.h>
 Analog_out analog(4);
-P_controller Pcon(7,120,255);
+//P_controller Pcon(7,120,255);
 Encoder enc;
 Digital_in A(2);//PD2 for the signal A, D2
 Digital_in B(3);//PD3 for the signal B, D3
@@ -29,42 +29,10 @@ int setpoint = 0;
 
 void setup(){
     Serial.begin(115200);
-    A.initINT();    // Initialize A signal as interrupt
-    B.init(); // Initialize B signal
-    //LED.init();
-    analog.init(); //default value of 1000ms
-    analog.set(0.99); // default value is 0.5
-    // Enable global interrupts
     sei();
     Serial.println("Setpoint, RPM, PWM");
 }
 void loop(){
-  
-  int PPScount = enc.speedPPS();
-  int RPMcount = enc.speedRPM();
-
-  unsigned long currentTime = millis();
-    if(currentTime - previousTime >= 1) {
-        //Serial.print("PPtenms: ");
-        //Serial.println(PPScount);
-        //Serial.print("RPM: ");
-        
-        Serial.print(setpoint);
-        Serial.print(",");
-        Serial.print(RPMcount);
-        Serial.print(",");
-        previousTime = millis();
-        Serial.print(PV);
-        Serial.println();
-        PV = Pcon.update(setpoint,RPMcount);
-        PWM = (1.0/255.0)*float(PV);
-        analog.set(PWM);
-    }
-
-    unsigned long currentTimeStep = millis();
-    if(currentTimeStep - previousTimeStep >= 10000) {
-      setpoint = 90;
-    }
 
 }
   
