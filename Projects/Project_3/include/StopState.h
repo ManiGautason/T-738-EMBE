@@ -12,7 +12,10 @@ public:
     void on_stop() override;
     void on_back_to_OpState() override;
     void on_back_to_PreOpState() override;
-
+    static const int STOP_STATE = 4;
+    int get_state_id() override {
+        return STOP_STATE;
+    }
 private:
     unsigned long previousMillis;
     const unsigned long interval = 250; // Blink interval in milliseconds
