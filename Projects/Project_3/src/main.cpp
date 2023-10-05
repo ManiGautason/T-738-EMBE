@@ -3,6 +3,7 @@
 #include "digital_out.h"
 #include "analog_out.h"
 #include <encoder.h>
+#include <P_controller.h>
 
 // Includes for STATE MACHINE
 #include "State.h"
@@ -26,16 +27,46 @@ Digital_in B(3);        //PD3 for the signal B, D3
 Digital_in flt_pin(4);  //PD4 for the motor controller fault
 Analog_out analog(4);   
 Encoder enc;
+P_controller Pcon(7,120,255);
 
 int initFlag = 0;
 int stopFlag = 0;
 int opFlag = 0;
 int PreOpFlag = 0;
+int K_p = 0;
+int T_i = 0;  
+
+
+// Function to read and parse an integer from Serial input
+int readAndParseInt() {
+    Serial.println("Enter an integer value: ");
+
+    String inputBuffer = "";
+    
+    while (true) {
+        if (Serial.available()) {
+            char inputChar = Serial.read();
+            if (isdigit(inputChar)) {
+                inputBuffer += inputChar;
+            } else if (inputChar == '\n' || inputChar == ' ') {
+                if (inputBuffer.length() > 0) {
+                    int parsedValue = inputBuffer.toInt();
+                    Serial.println("Received value: " + String(parsedValue));
+                    return parsedValue;
+                }
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
 
 void setup() {
     Serial.begin(9600);
     sei();
 }
+
 
 void loop() {
     // Initialize the state machine in the Initialization state
@@ -92,6 +123,14 @@ void loop() {
                     Serial.println("Executing Reset Command");
                     context->reset(); // Transition to Initialization state
                 }
+                else if (command == 'k') {
+                    Serial.println("Enter value for K_p: ");
+                    K_p = readAndParseInt();
+
+                } else if (command == 't') {
+                    Serial.println("Enter value for T_i: ");
+                    T_i = readAndParseInt();
+                }
                 break;
 
             case OP_STATE:
@@ -124,17 +163,13 @@ void loop() {
                 break;
 
             default:
-                // Handle other states or commands as needed
+                
                 break;
         }
     }
 
     // Continue performing tasks within the current state
     context->do_work();
-    // Handle interrupts or other tasks as needed
-
-    // Delete the context to avoid memory leaks
-    //delete context;
 }
 
 // Define the ISR for INT0 (external interrupt)
