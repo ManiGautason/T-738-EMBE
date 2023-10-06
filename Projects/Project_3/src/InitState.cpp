@@ -15,7 +15,9 @@ void InitState::on_entry() {
     Serial.println("Init state entry");
     LED.init();
     LED.set_lo();
-    analog.init();
+    // analog.init();
+    // A.initINT();
+    // B.init();
 }
 
 void InitState::on_exit() {
