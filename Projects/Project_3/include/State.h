@@ -9,6 +9,7 @@
 #define STATE_H
 #include "analog_out.h"
 #include "digital_out.h"
+#include <P_controller.h>
 
 class Context;
 
@@ -30,6 +31,7 @@ public:
 
     static Analog_out analog;
     static Digital_out LED;
+    static P_controller Pcon;
     
 };
 
