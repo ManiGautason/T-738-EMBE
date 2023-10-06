@@ -3,7 +3,6 @@
 #include "digital_out.h"
 #include "analog_out.h"
 #include <encoder.h>
-#include <controller.h>
 #include <P_controller.h>
 #include <PI_controller.h>
 
@@ -29,17 +28,14 @@ Digital_in B(3);        //PD3 for the signal B, D3
 Digital_in flt_pin(4);  //PD4 for the motor controller fault
 Analog_out analog(4);   
 Encoder enc;
-PI_controller PIcon(3.6, 1.66, 100, 255, 1);
+PI_controller Pcon(3.6,0.0016,100,255,1);
 
-int RPMcount = 0;
 int initFlag = 0;
 int stopFlag = 0;
 int opFlag = 0;
 int PreOpFlag = 0;
 int K_p = 0;
-int T_i = 0;
-int MAX_RPM;
-int MAX_PWM;
+int T_i = 0;  
 
 
 // Function to read and parse an integer from Serial input
@@ -68,20 +64,13 @@ int readAndParseInt() {
 
 
 void setup() {
-    Serial.begin(115200);
-    analog.init();
-    analog.set(0);
-    A.initINT();
-    B.init();
+    Serial.begin(9600);
     sei();
 }
 
 
 void loop() {
-    RPMcount = enc.speedRPM();
-    Serial.println(RPMcount);
-    
-    //Initialize the state machine in the Initialization state
+    // Initialize the state machine in the Initialization state
     if (initFlag == 0) {
         initFlag = 1; // Reset initialization flag
 
@@ -104,7 +93,7 @@ void loop() {
         // Transition to the Stopped state
         context->stop();
     }
-    
+
     // Handle serial commands
     if (Serial.available() > 0) {
         char command = Serial.read();
@@ -138,12 +127,10 @@ void loop() {
                 else if (command == 'k') {
                     Serial.println("Enter value for K_p: ");
                     K_p = readAndParseInt();
-                    PIcon.set_kp(K_p);
 
                 } else if (command == 't') {
                     Serial.println("Enter value for T_i: ");
                     T_i = readAndParseInt();
-                    PIcon.set_kp(T_i);
                 }
                 break;
 
