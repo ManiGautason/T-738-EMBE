@@ -3,16 +3,16 @@
 ' [*] -->  Initialization : Init
 
 state Initialization {
-    Initialization: entry
-    Initialization: do / Initialize internal parameters
-    Initialization: exit
+    Initialization: entry / Initialize internal parameters
+    ' Initialization: do
+    Initialization: exit /  Boot-up message
 }
 
 Initialization --> Operational
 
 state Operational {
     Operational: entry / greenLEDon
-    Operational: do / Normal input-output behavior
+    Operational: do / Run motor
     Operational: exit / greenLEDOff
 }
 
