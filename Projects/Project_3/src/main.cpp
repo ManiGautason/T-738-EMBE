@@ -3,7 +3,6 @@
 #include "digital_out.h"
 #include "analog_out.h"
 #include <encoder.h>
-#include <P_controller.h>
 #include <PI_controller.h>
 
 // Includes for STATE MACHINE
