@@ -29,8 +29,9 @@ Digital_in B(3);        //PD3 for the signal B, D3
 Digital_in flt_pin(4);  //PD4 for the motor controller fault
 Analog_out analog(4);   
 Encoder enc;
-PI_controller PIcon(7,120,255,1.0);
+PI_controller PIcon(3.6, 1.66, 100, 255, 1);
 
+int RPMcount = 0;
 int initFlag = 0;
 int stopFlag = 0;
 int opFlag = 0;
@@ -67,13 +68,20 @@ int readAndParseInt() {
 
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
+    analog.init();
+    analog.set(0);
+    A.initINT();
+    B.init();
     sei();
 }
 
 
 void loop() {
-    // Initialize the state machine in the Initialization state
+    RPMcount = enc.speedRPM();
+    Serial.println(RPMcount);
+    
+    //Initialize the state machine in the Initialization state
     if (initFlag == 0) {
         initFlag = 1; // Reset initialization flag
 
@@ -96,7 +104,7 @@ void loop() {
         // Transition to the Stopped state
         context->stop();
     }
-
+    
     // Handle serial commands
     if (Serial.available() > 0) {
         char command = Serial.read();
@@ -130,11 +138,12 @@ void loop() {
                 else if (command == 'k') {
                     Serial.println("Enter value for K_p: ");
                     K_p = readAndParseInt();
-                    
+                    PIcon.set_kp(K_p);
 
                 } else if (command == 't') {
                     Serial.println("Enter value for T_i: ");
                     T_i = readAndParseInt();
+                    PIcon.set_kp(T_i);
                 }
                 break;
 

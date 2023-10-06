@@ -1,4 +1,4 @@
-#include "Encoder.h"
+#include "encoder.h"
 #include <Arduino.h> // Include this if you're using Arduino IDE and want to use millis()
 
 Encoder::Encoder() {

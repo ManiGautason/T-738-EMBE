@@ -16,6 +16,10 @@ public:
     int get_state_id() override {
         return OP_STATE;
     }
+private:
+    int PV = 0;
+    float PWM = 0;
+    int setpoint = 0;
 };
 
 
