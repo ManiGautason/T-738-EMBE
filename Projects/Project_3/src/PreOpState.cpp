@@ -9,7 +9,6 @@
 void PreOpState::on_do() {
     unsigned long currMillis = millis();
 
-
     if (currMillis - prevMillis >= interval) {
         // Save the last time you blinked the LED
         prevMillis = currMillis;
@@ -19,10 +18,7 @@ void PreOpState::on_do() {
 
 void PreOpState::on_entry() {
     Serial.println("PreOp state entry:");
-    LED.init(); // Initialize the LED
-    analog.set(0);
     prevMillis = millis(); // Initialize previousMillis
-
 
 }
 
