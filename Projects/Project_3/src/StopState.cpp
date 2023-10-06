@@ -7,6 +7,7 @@
 #include "OpState.h"
 
 void StopState::on_do() {
+    analog.set(0);
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval) {
