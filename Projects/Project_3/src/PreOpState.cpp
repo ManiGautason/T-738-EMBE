@@ -7,6 +7,7 @@
 
 
 void PreOpState::on_do() {
+    
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval) {
@@ -20,6 +21,7 @@ void PreOpState::on_entry() {
     Serial.println("PreOp state entry:");
     previousMillis = millis(); // Initialize previousMillis
     LED.init(); // Initialize the LED
+    analog.set(0);
 
 }
 
