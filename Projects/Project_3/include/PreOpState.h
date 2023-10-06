@@ -17,7 +17,7 @@ public:
         return PRE_OP_STATE;
     }
 private:
-    unsigned long previousMillis;
+    unsigned long prevMillis;
     const unsigned long interval = 500; // Blink interval in milliseconds
 };
 

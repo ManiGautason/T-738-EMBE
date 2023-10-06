@@ -5,9 +5,9 @@
 #include <Arduino.h>
 #include <avr/interrupt.h>
 #include <analog_out.h>
-#include <P_controller.h>
+#include <PI_controller.h>
 Analog_out analog(4);
-P_controller Pcon(7,120,255);
+PI_controller Pcon(0.8,1,0.001,100,255);
 Encoder enc;
 Digital_in A(2);//PD2 for the signal A, D2
 Digital_in B(3);//PD3 for the signal B, D3

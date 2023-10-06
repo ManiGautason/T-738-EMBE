@@ -9,8 +9,6 @@
 
 void InitState::on_do() {
     Serial.println("Init state: initializing device...");
-    //analog.init();
-    //LED.init();
 }
 
 void InitState::on_entry() {

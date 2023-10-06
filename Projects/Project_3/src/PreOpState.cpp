@@ -7,21 +7,22 @@
 
 
 void PreOpState::on_do() {
-    
-    unsigned long currentMillis = millis();
+    unsigned long currMillis = millis();
 
-    if (currentMillis - previousMillis >= interval) {
+
+    if (currMillis - prevMillis >= interval) {
         // Save the last time you blinked the LED
-        previousMillis = currentMillis;
+        prevMillis = currMillis;
         LED.toggle(); // Toggle the LED state
     }
 }
 
 void PreOpState::on_entry() {
     Serial.println("PreOp state entry:");
-    previousMillis = millis(); // Initialize previousMillis
     LED.init(); // Initialize the LED
     analog.set(0);
+    prevMillis = millis(); // Initialize previousMillis
+
 
 }
 
