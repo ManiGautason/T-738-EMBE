@@ -2,7 +2,7 @@
 
 Analog_out State::analog(4);
 Digital_out State::LED(5);
-P_controller State::Pcon(7,120,255);
+PI_controller State::PIcon(4,7,120,255,1.0);
 
 State::~State() {
 }
