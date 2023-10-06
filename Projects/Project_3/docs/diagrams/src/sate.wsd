@@ -8,13 +8,26 @@ state Initialization {
     Initialization: exit /  Boot-up message
 }
 
-Initialization --> Operational
+Initialization --> PreOperational
+
+state PreOperational {
+    PreOperational: entry / Blink Yellow LED at 1 Hz
+    PreOperational: do / Accept configuration commands
+    PreOperational: exit / Turn yellow LED off
+}
+
+PreOperational --> Stopped : emergency stop
+Stopped --> PreOperational : clear fault
+PreOperational --> Operational : Set operational
+PreOperational --> Initialization : reset
 
 state Operational {
     Operational: entry / Turn green LED on
     Operational: do / Run motor
     Operational: exit / Turn green LED off
 }
+
+Operational --> PreOperational : Set pre-operational
 
 state Stopped {
     Stopped: entry / Stop motor
