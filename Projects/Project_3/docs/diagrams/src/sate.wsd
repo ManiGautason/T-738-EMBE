@@ -11,10 +11,19 @@ state Initialization {
 Initialization --> Operational
 
 state Operational {
-    Operational: entry / greenLEDon
+    Operational: entry / Turn green LED on
     Operational: do / Run motor
-    Operational: exit / greenLEDOff
+    Operational: exit / Turn green LED off
 }
 
+state Stopped {
+    Stopped: entry / Stop motor
+    Stopped: do / Blink red LED at 2 Hz
+    Stopped: exit / Turn red LED off
+}
+
+Operational --> Stopped : emergency stop
+Stopped --> Operational : clear fault
+Stopped --> Initialization : reset
 Operational --> Initialization : reset
 @enduml
