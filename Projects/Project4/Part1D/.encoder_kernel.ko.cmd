@@ -1,0 +1,1 @@
+cmd_/home/mani/Project4/Part1D/encoder_kernel.ko := ld -r -EL -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/mani/Project4/Part1D/encoder_kernel.ko /home/mani/Project4/Part1D/encoder_kernel.o /home/mani/Project4/Part1D/encoder_kernel.mod.o;  true
