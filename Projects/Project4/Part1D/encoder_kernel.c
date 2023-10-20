@@ -13,7 +13,6 @@ MODULE_VERSION("0.1");
 static unsigned int Output_pin = 21;             
 static unsigned int Encoder_pin = 20;          
 static unsigned int irqNumber;                      // share IRQ num within file 
-static unsigned int numberEdges = 0;                // store number of presses 
 static bool         OutputState = 0;                // used to invert state of LED
 
 // prototype for the custom IRQ handler function, function below 
@@ -81,7 +80,6 @@ static irq_handler_t erpi_gpio_irq_handler(unsigned int irq,
     gpio_set_value(Output_pin, OutputState);            // set LED accordingly  
     printk(KERN_INFO "ENCODER_TEST: Interrupt! (button is %d)\n", 
            gpio_get_value(Encoder_pin));
-    numberEdges++;                                      // global counter
     return (irq_handler_t) IRQ_HANDLED;                 // announce IRQ handled 
 }
 
