@@ -9,15 +9,15 @@
 #include "digital_in.h"
 
 void OpState::on_do() {
-    //analog.set(0.7);
-    // Serial.println("OPSTATEDOO:");
+    analog.set(0.7);
+    //Serial.println("OPSTATEDOO:");
     // int PPScount = enc.speedPPS();
     // int RPMcount = enc.speedRPM();
-    // //Serial.println(RPMcount);
-    // LED.set_hi();
+    // Serial.println(RPMcount);
+    LED.set_hi();
     // PV = PIcon.update(setpoint,RPMcount);
     // PWM = (1.0/255.0)*float(PV);
-    // analog.set(PWM);
+    // // analog.set(PWM);
 }
 
 void OpState::on_entry() {

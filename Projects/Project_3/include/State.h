@@ -32,12 +32,13 @@ public:
     virtual void on_back_to_OpState() = 0;
     virtual void on_back_to_PreOpState() = 0;
 
-    //static Analog_out analog;
+    static Analog_out analog;
     static Digital_out LED;
     // static Digital_in A;
     // static Digital_in B;   
-    // static PI_controller PIcon;
     // static Encoder enc;
+    // static PI_controller PIcon;
+
 };
 
 #endif // STATE_H

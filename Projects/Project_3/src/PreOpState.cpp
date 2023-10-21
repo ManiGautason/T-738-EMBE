@@ -7,6 +7,7 @@
 
 
 void PreOpState::on_do() {
+    
     unsigned long currMillis = millis();
 
     if (currMillis - prevMillis >= interval) {
@@ -19,6 +20,7 @@ void PreOpState::on_do() {
 void PreOpState::on_entry() {
     Serial.println("PreOp state entry:");
     prevMillis = millis(); // Initialize previousMillis
+    analog.set(0);
 
 }
 
@@ -42,3 +44,4 @@ void PreOpState::on_back_to_OpState() {
 void PreOpState::on_back_to_PreOpState() {
     //this->context_->transition_to();
 }
+

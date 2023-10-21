@@ -20,6 +20,7 @@ void StopState::on_entry() {
     Serial.println("Stop state entry:");
     previousMillis = millis();  // Initialize previousMillis
     LED.init();                 // Initialize the LED
+    analog.set(0);
     // TURN OFF MOTOR
 }
 

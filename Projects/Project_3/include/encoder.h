@@ -39,9 +39,9 @@ private:
     // unsigned long prevTime;
     unsigned long previousMillis;
     unsigned long interval; // 1 second (in milliseconds)
-    long count;
-    long countA;
-    long countB;
+    volatile long count;
+    volatile long countA;
+    volatile long countB;
 };
 
 #endif

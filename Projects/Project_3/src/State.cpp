@@ -1,6 +1,6 @@
 #include "State.h"
 
-//Analog_out State::analog(4);
+Analog_out State::analog(4);
 Digital_out State::LED(5);
 // Digital_in State::A(2);
 // Digital_in State::B(3);

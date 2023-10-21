@@ -1,9 +1,102 @@
+// #include <encoder.h>
+// #include "digital_in.h"
+// #include <util/delay.h>
+// #include <digital_out.h>
+// #include <Arduino.h>
+// #include <avr/interrupt.h>
+// #include <analog_out.h>
+// #include <PI_controller.h>
+// Analog_out analog(4);
+// //PI_controller controller(kp, ki, MAX_RPM, MAX_PWM, DELTA_T);
+// PI_controller Pcon(3.6,0.0016,100,255,1);
+// //PI_controller Pcon(0.8,1,0.001,100,255);
+// Encoder enc;
+// Digital_in A(2);//PD2 for the signal A, D2
+// Digital_in B(3);//PD3 for the signal B, D3
+
+// //Digital_out LED(5);// Port B
+
+// int count = 0;
+// int countA = 0;
+// int countB = 0;
+// int PV = 0;
+// float PWM = 0;
+// unsigned long StateChangeTime = 0;
+// unsigned long PreviousStateChangeTime = 0;
+// unsigned long StatePeriod = 0;
+// unsigned long previousTime = 0;
+// unsigned long previousTimeStep = 0;
+// const unsigned long interval = 10; // 1 second (in milliseconds)
+// int setpoint = 0;
+
+// void setup(){
+//     Serial.begin(115200);
+//     A.initINT();    // Initialize A signal as interrupt
+//     B.init(); // Initialize B signal
+//     //LED.init();
+//     analog.init(); //default value of 1000ms
+//     analog.set(0); // default value is 0.5
+//     // Enable global interrupts
+//     sei();
+//     Serial.println("Setpoint, RPM, PWM");
+// }
+// void loop(){
+  
+//   int PPScount = enc.speedPPS();
+//   int RPMcount = enc.speedRPM();
+
+//   unsigned long currentTime = millis();
+//     if(currentTime - previousTime >= 1) {
+//         //Serial.print("PPtenms: ");
+//         //Serial.println(PPScount);
+//         //Serial.print("RPM: ");
+        
+//         Serial.print(setpoint);
+//         Serial.print(",");
+//         Serial.print(RPMcount);
+//         Serial.print(",");
+//         previousTime = millis();
+//         Serial.print(PV);
+//         Serial.println();
+//         PV = Pcon.update(setpoint,RPMcount);
+//         PWM = (1.0/255.0)*float(PV);
+//         analog.set(PWM);
+//     }
+
+//     unsigned long currentTimeStep = millis();
+//     if(currentTimeStep - previousTimeStep >= 5000) {
+//       setpoint = 90;
+//     }
+
+// }
+  
+// // Define the ISR for INT0 (external interrupt)
+// ISR(INT0_vect) {
+//     // Call your interrupt action function
+//     enc.updateCount(A.is_hi(),B.is_hi());
+//     //Serial.println("A");
+// }
+// ISR (TIMER1_COMPA_vect)
+// {
+// // action to be taken at the start of the on-cycle
+//   analog.pin.set_hi();
+// }
+// ISR (TIMER1_COMPB_vect)
+// {
+// // action to be taken at the start of the off-cycle
+//   analog.pin.set_lo();
+// }
+
 #include <Arduino.h>
 #include "digital_in.h"
 #include "digital_out.h"
 #include "analog_out.h"
 #include <encoder.h>
+<<<<<<< Updated upstream
 #include <PI_controller.h>
+=======
+#include <controller.h>
+>>>>>>> Stashed changes
 
 // Includes for STATE MACHINE
 #include "State.h"
@@ -27,8 +120,13 @@ Digital_in B(3);        //PD3 for the signal B, D3
 Digital_in flt_pin(4);  //PD4 for the motor controller fault
 Analog_out analog(4);   
 Encoder enc;
+<<<<<<< Updated upstream
 PI_controller Pcon(3.6,0.0016,100,255,1);
 
+=======
+
+
+>>>>>>> Stashed changes
 int initFlag = 0;
 int stopFlag = 0;
 int opFlag = 0;
@@ -69,15 +167,19 @@ void setup() {
 
 
 void loop() {
+<<<<<<< Updated upstream
     // Initialize the state machine in the Initialization state
+=======
+    //Initialize the state machine in the Initialization state
+>>>>>>> Stashed changes
     if (initFlag == 0) {
         initFlag = 1; // Reset initialization flag
 
         // Transition to the Initialization state
-        context = new Context(new InitState);
+        context = new Context(new InitState());
         Serial.println("Initializing Motor");
 
-        // Perform initialization tasks
+        //Perform initialization tasks
         context->do_work();
 
         // Transition to the Pre-operational state
@@ -126,10 +228,18 @@ void loop() {
                 else if (command == 'k') {
                     Serial.println("Enter value for K_p: ");
                     K_p = readAndParseInt();
+<<<<<<< Updated upstream
+=======
+                    //PIcon.set_kp(K_p);
+>>>>>>> Stashed changes
 
                 } else if (command == 't') {
                     Serial.println("Enter value for T_i: ");
                     T_i = readAndParseInt();
+<<<<<<< Updated upstream
+=======
+                    //PIcon.set_kp(T_i);
+>>>>>>> Stashed changes
                 }
                 break;
 
@@ -169,7 +279,7 @@ void loop() {
     }
 
     // Continue performing tasks within the current state
-    context->do_work();
+    //context->do_work();
 }
 
 // Define the ISR for INT0 (external interrupt)
