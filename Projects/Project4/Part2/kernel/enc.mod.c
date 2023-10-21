@@ -42,6 +42,7 @@ __used __section("__versions") = {
 	{ 0xeba1d604, "device_destroy" },
 	{ 0xc7bca38c, "class_unregister" },
 	{ 0x773cd21a, "class_destroy" },
+	{ 0x6bc3fbc0, "__unregister_chrdev" },
 	{ 0xc1514a3b, "free_irq" },
 	{ 0x8b48754a, "gpiod_unexport" },
 	{ 0xfe990052, "gpio_free" },
@@ -52,7 +53,6 @@ __used __section("__versions") = {
 	{ 0x92d5838e, "request_threaded_irq" },
 	{ 0xa6ab768, "__register_chrdev" },
 	{ 0xa8743c5b, "__class_create" },
-	{ 0x6bc3fbc0, "__unregister_chrdev" },
 	{ 0x8336a5f1, "device_create" },
 	{ 0xcaa72ffd, "module_layout" },
 };
@@ -60,4 +60,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "C2799E4698E24731A923E4F");
+MODULE_INFO(srcversion, "F1269629A5C29F44AEAE430");

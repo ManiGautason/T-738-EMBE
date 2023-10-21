@@ -96,10 +96,12 @@ static int __init erpi_gpio_init(void)
 
 static void __exit erpi_gpio_exit(void)
 {
-    device_destroy(encoder_class, MKDEV(0, 0));
+
+    device_destroy(encoder_class, MKDEV(majorNumber, 0));
     class_unregister(encoder_class);
     class_destroy(encoder_class);
-    
+    unregister_chrdev(majorNumber, DEVICE_NAME);
+
     free_irq(irqNumberA, NULL);
     gpio_unexport(EncoderPinA);
     gpio_unexport(EncoderPinB);
