@@ -1,9 +1,9 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/fs.h>       // Required for file_operations
-#include <linux/device.h>   // Required for class_create and device_create
-#include <linux/uaccess.h>  // Required for copy_to_user
+#include <linux/fs.h>       
+#include <linux/device.h>   
+#include <linux/uaccess.h>  
 #include <linux/gpio.h>
 #include <linux/interrupt.h>
 
@@ -19,16 +19,12 @@ static int majorNumber;
 static unsigned int EncoderPinA = 20;
 static unsigned int EncoderPinB = 21;
 static unsigned int irqNumberA;
-static unsigned int irqNumberB;
 static int pulseCount = 0;
-static bool lastStateA = false;
-static bool lastStateB = false;
 
 static struct class *encoder_class;
 static struct device *encoder_device;
 
 static irq_handler_t erpi_gpio_irq_handlerA(unsigned int irq, void *dev_id, struct pt_regs *regs);
-static irq_handler_t erpi_gpio_irq_handlerB(unsigned int irq, void *dev_id, struct pt_regs *regs);
 
 static int encoder_open(struct inode *inode, struct file *file);
 static ssize_t encoder_read(struct file *file, char __user *user_buffer, size_t count, loff_t *offset);
@@ -61,24 +57,15 @@ static int __init erpi_gpio_init(void)
     gpio_export(EncoderPinB, false);
 
     irqNumberA = gpio_to_irq(EncoderPinA);
-    irqNumberB = gpio_to_irq(EncoderPinB);
-
     resultA = request_irq(irqNumberA, (irq_handler_t)erpi_gpio_irq_handlerA, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "erpi_gpio_handlerA", NULL);
-    resultB = request_irq(irqNumberB, (irq_handler_t)erpi_gpio_irq_handlerB, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "erpi_gpio_handlerB", NULL);
 
-    if (resultA || resultB)
+    if (resultA)
     {
-        printk(KERN_INFO "ENCODER_DRIVER: IRQ request result is: %d (A) %d (B)\n", resultA, resultB);
+        printk(KERN_INFO "ENCODER_DRIVER: IRQ request result is: %d (A) %d (B)\n", resultA);
         return -EBUSY;
     }
 
     printk(KERN_INFO "ENCODER_DRIVER: Encoder pins A and B initialized.\n");
-
-    // // Create a class and device for the encoder driver
-    // encoder_class = class_create(THIS_MODULE, "encoder");
-    // encoder_device = device_create(encoder_class, NULL, MKDEV(0, 0), NULL, "encoder");
-
-    // return 0;
 
     // Register the character device
     majorNumber = register_chrdev(DEVICE_MAJOR, DEVICE_NAME, &fops);
@@ -114,7 +101,6 @@ static void __exit erpi_gpio_exit(void)
     class_destroy(encoder_class);
     
     free_irq(irqNumberA, NULL);
-    free_irq(irqNumberB, NULL);
     gpio_unexport(EncoderPinA);
     gpio_unexport(EncoderPinB);
     gpio_free(EncoderPinA);
@@ -128,46 +114,17 @@ static irq_handler_t erpi_gpio_irq_handlerA(unsigned int irq, void *dev_id, stru
     bool stateA = gpio_get_value(EncoderPinA);
     bool stateB = gpio_get_value(EncoderPinB);
 
-    if ((lastStateA && !stateA) || (!lastStateA && stateA))
-    {
-
-        if (stateB == stateA)
-        {
+    if(stateB != stateA) {
             pulseCount++;
         }
-        else
-        {
+        else {
             pulseCount--;
         }
-    }
 
-    lastStateA = stateA;
-
+    printk(KERN_INFO "ENCODER_DRIVER: Pulse count: %d\n", pulseCount);
     return (irq_handler_t)IRQ_HANDLED;
 }
 
-static irq_handler_t erpi_gpio_irq_handlerB(unsigned int irq, void *dev_id, struct pt_regs *regs)
-{
-    bool stateA = gpio_get_value(EncoderPinA);
-    bool stateB = gpio_get_value(EncoderPinB);
-
-    if ((lastStateB && !stateB) || (!lastStateB && stateB))
-    {
-        printk(KERN_INFO "ENCODER_DRIVER: Pulse count: %d\n", pulseCount);
-        if (stateA == stateB)
-        {
-            pulseCount--;
-        }
-        else
-        {
-            pulseCount++;
-        }
-    }
-
-    lastStateB = stateB;
-
-    return (irq_handler_t)IRQ_HANDLED;
-}
 
 static int encoder_open(struct inode *inode, struct file *file)
 {
@@ -196,4 +153,3 @@ static int encoder_release(struct inode *inode, struct file *file)
 
 module_init(erpi_gpio_init);
 module_exit(erpi_gpio_exit);
-

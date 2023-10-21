@@ -1,0 +1,1 @@
+cmd_/home/mani/Project4/Part2/kernel/enc.ko := ld -r -EL -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/mani/Project4/Part2/kernel/enc.ko /home/mani/Project4/Part2/kernel/enc.o /home/mani/Project4/Part2/kernel/enc.mod.o;  true

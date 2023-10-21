@@ -22,8 +22,8 @@ int main(void){
     close(Output_pin);
 
     //Set Output pin as output
-    Output_pin = open("/sys/class/gpio/gpio21/direction", O_WRONLY);
-    write(Output_pin, "out", 2);
+    Output_pin = open("/sys/class/gpio/gpio20/direction", O_WRONLY);
+    write(Output_pin, "in", 2);
     close(Output_pin);
     
     char Encoder_state; 
@@ -43,6 +43,5 @@ int main(void){
         write(Output_pin, buffer, 1);
         close(Output_pin);
 
-        //int result = system("./cpu_usage.sh");
     }
 }

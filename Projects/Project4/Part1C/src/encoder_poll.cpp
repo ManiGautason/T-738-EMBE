@@ -18,7 +18,7 @@ int main(void) {
 
     // Set Encoder trigger
     encoder_pin = open("/sys/class/gpio/gpio20/edge", O_WRONLY);
-    write(encoder_pin, "both", 2);
+    write(encoder_pin, "both", 4);
     close(encoder_pin);
 
     // Enable Output pin
@@ -28,22 +28,23 @@ int main(void) {
 
     // Set Output pin as output
     Output_pin = open("/sys/class/gpio/gpio21/direction", O_WRONLY);
-    write(Output_pin, "out", 3); // Should be "out", not "in"
+    write(Output_pin, "out", 3); 
     close(Output_pin);
 
     struct pollfd mypoll;
     memset(&mypoll, 0, sizeof(mypoll));
-    mypoll.fd = open("/sys/class/gpio/gpio20/value", O_RDONLY); // Open value file directly
-    mypoll.events = POLLPRI; // Use POLLPRI to detect edge changes
+    mypoll.fd = open("/sys/class/gpio/gpio20/value", O_RDONLY); 
+    mypoll.events = POLLPRI;             
 
     char Encoder_state;
-    char prevEncoder_state = '0'; // Initialize to LOW state
+    char prevEncoder_state = '0'; 
     char buffer[1]; 
     while (1) {
-        poll(&mypoll, 1, -1); // Wait indefinitely for an event
-
+        
+        // Wait indefinitely for an event
+        poll(&mypoll, 1, -1);           
         if (mypoll.revents & POLLPRI) {
-            lseek(mypoll.fd, 0, SEEK_SET); // Move the file pointer to the beginning
+            lseek(mypoll.fd, 0, SEEK_SET); 
             read(encoder_pin, &Encoder_state, 1);
             buffer[0] = Encoder_state;
 
@@ -62,6 +63,5 @@ int main(void) {
     write(encoder_pin, "20", 2);
     close(encoder_pin);
 
-    // You should add code to clean up and close GPIO pins before exiting
     return 0;
 }

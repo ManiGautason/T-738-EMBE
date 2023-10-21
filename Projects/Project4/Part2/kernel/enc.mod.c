@@ -36,15 +36,15 @@ __used __section("__versions") = {
 	{ 0x7682ba4e, "__copy_overflow" },
 	{ 0x3ea1b6e4, "__stack_chk_fail" },
 	{ 0x8f678b07, "__stack_chk_guard" },
+	{ 0x74665ecb, "gpio_to_desc" },
+	{ 0x987f8d1e, "gpiod_get_raw_value" },
+	{ 0x92997ed8, "_printk" },
 	{ 0xeba1d604, "device_destroy" },
 	{ 0xc7bca38c, "class_unregister" },
 	{ 0x773cd21a, "class_destroy" },
 	{ 0xc1514a3b, "free_irq" },
-	{ 0x74665ecb, "gpio_to_desc" },
 	{ 0x8b48754a, "gpiod_unexport" },
 	{ 0xfe990052, "gpio_free" },
-	{ 0x92997ed8, "_printk" },
-	{ 0x987f8d1e, "gpiod_get_raw_value" },
 	{ 0x47229b5c, "gpio_request" },
 	{ 0xe83ceef0, "gpiod_direction_input" },
 	{ 0xee8cf108, "gpiod_export" },
@@ -60,4 +60,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "192E1AB8A60F4131E5F1578");
+MODULE_INFO(srcversion, "C2799E4698E24731A923E4F");
