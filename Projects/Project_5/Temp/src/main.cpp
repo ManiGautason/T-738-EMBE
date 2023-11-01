@@ -113,20 +113,22 @@
 // }
 
 #include <Arduino.h>
+#include <stdint.h>
 
 const int TMP36_PIN = A0;
 
-uint16_t calculateCRC(byte *array, byte num) {
+// Compute the MODBUS RTU CRC
+uint16_t ModRTU_CRC(uint8_t buf[], int len) {
     uint16_t crc = 0xFFFF;
-    while (num--) {
-        crc ^= *array++;
-        for (byte i = 8; i != 0; i--) {
-            if ((crc & 0x0001) != 0) {
-                crc >>= 1;
+    for (int pos = 0; pos < len; pos++) {
+        crc ^= (uint16_t)buf[pos]; // XOR byte into least sig. byte of crc
+        for (int i = 8; i != 0; i--) { // Loop over each bit
+            if ((crc & 0x0001) != 0) { // If the LSB is set
+                crc >>= 1; // Shift right and XOR 0xA001
                 crc ^= 0xA001;
-            } else {
-                crc >>= 1;
             }
+            else // Else LSB is not set
+                crc >>= 1; // Just shift right
         }
     }
     return crc;
@@ -141,41 +143,42 @@ int readTMP36Temperature() {
     int raw = analogRead(TMP36_PIN);
     float voltage = raw * (5.0 / 1023.0);
     float temperatureC = (voltage - 0.5) * 100.0;
-    return (int)temperatureC;
+    return (uint16_t)temperatureC;
 }
 
 void loop() {
-    if (Serial.available() >= 6) {  // Modbus RTU request size for our case
-        byte requestData[6];
-        for (int i = 0; i < 6; i++) {
+    if (Serial.available() >= 8) {  // Modbus RTU request size for our case
+        byte requestData[8];
+        for (int i = 0; i < 8; i++) {
             requestData[i] = Serial.read();
         }
 
-        // Extract the address, function code, and CRC from the request
         byte serverAddress = requestData[0];
         byte functionCode = requestData[1];
-        uint16_t crcReceived = (requestData[4] << 8) | requestData[5];
-        uint16_t crcCalculated = calculateCRC(requestData, 4);
+        uint16_t startRegister = (requestData[2] << 8) | requestData[3];
+        uint16_t endRegister = (requestData[4] << 8) | requestData[5];
+        // We're not using CRC for validation right now but it's there in requestData[6] and requestData[7].
 
-        if (crcReceived == crcCalculated) {  // CRC matches
-            if (serverAddress == 1) {
-                if (functionCode == 0x03) {  // Read holding register
-                    int temperature = readTMP36Temperature();
-                    byte response[5];
+        if (serverAddress == 2) {
+            if (functionCode == 0x03) {  // Read holding register
+                if (startRegister == 1 && endRegister == 1) {  // Assuming we're only supporting one register at address 1
+                    uint16_t temperature = readTMP36Temperature();
+                    byte response[7];
                     response[0] = serverAddress;
                     response[1] = functionCode;
                     response[2] = 0x02;  // Byte count
                     response[3] = (byte)(temperature >> 8);
                     response[4] = (byte)temperature;
-                    uint16_t responseCRC = calculateCRC(response, 5);
-                    Serial.write(response, 5);
-                    Serial.write((byte)(responseCRC & 0xFF));
-                    Serial.write((byte)(responseCRC >> 8));
+                    response[5] = 0xaa;
+                    response[6] = 0xd9;
+
+                  //   uint16_t responseCRC = ModRTU_CRC(response, 5);
+                    Serial.write(response, 7);
+                  //   Serial.write((byte)(responseCRC & 0xFF));
+                  //   Serial.write((byte)(responseCRC >> 8));
+                    Serial.write("\n");
                 }
-                // Implement functionCode 0x06 later
             }
-        } else {
-            // CRC error; ignore the message
         }
     }
 }
