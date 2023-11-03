@@ -128,7 +128,7 @@ uint16_t ModRTU_CRC(uint8_t buf[], int len) {
                 crc ^= 0xA001;
             }
             else // Else LSB is not set
-                crc >>= 1; // Just shift right
+                crc >>= 1; // Just shift rightX
         }
     }
     return crc;
@@ -169,14 +169,14 @@ void loop() {
                     response[2] = 0x02;  // Byte count
                     response[3] = (byte)(temperature >> 8);
                     response[4] = (byte)temperature;
-                    response[5] = 0xaa;
-                    response[6] = 0xd9;
+                    response[5] = 0xFF;
+                    response[6] = 0xFF;
 
                   //   uint16_t responseCRC = ModRTU_CRC(response, 5);
                     Serial.write(response, 7);
                   //   Serial.write((byte)(responseCRC & 0xFF));
                   //   Serial.write((byte)(responseCRC >> 8));
-                    Serial.write("\n");
+                    // Serial.write("\n");
                 }
             }
         }
