@@ -72,7 +72,7 @@
 // /* Arduino Serial Command Processor */
 
 // // Define the analog pin to which the TMP36 is connected
-// const int TMP36_PIN = A0;
+// const int TMP36_PIN = A1;
 
 // void setup() {
 //    Serial.begin(115200, SERIAL_8N1);
@@ -83,11 +83,15 @@
 // int readTMP36Temperature() {
 //    int raw = analogRead(TMP36_PIN);
 //    float voltage = raw * (5.0 / 1023.0);
+//    Serial.println(voltage); 
 //    float temperatureC = (voltage - 0.5) * 100.0;
+// //    Serial.println(temperatureC);
 //    return (int)temperatureC;
 // }
 
 // void loop() {
+//     int temperature = readTMP36Temperature();
+//     // Serial.println((byte)temperature);  // Send the temperature as an integer 
 //    if (Serial.available() >= 2) {  // At least 2 bytes available for a complete message
 //       byte serverAddress = Serial.read();
 //       byte functionCode = Serial.read();
@@ -128,7 +132,7 @@ uint16_t ModRTU_CRC(uint8_t buf[], int len) {
                 crc ^= 0xA001;
             }
             else // Else LSB is not set
-                crc >>= 1; // Just shift right
+                crc >>= 1; // Just shift rightX
         }
     }
     return crc;
@@ -143,11 +147,11 @@ int readTMP36Temperature() {
     int raw = analogRead(TMP36_PIN);
     float voltage = raw * (5.0 / 1023.0);
     float temperatureC = (voltage - 0.5) * 100.0;
-    return (uint16_t)temperatureC;
+    return (int)temperatureC;
 }
 
 void loop() {
-    if (Serial.available() >= 8) {  // Modbus RTU request size for our case
+    if (Serial.available() >= 8) {
         byte requestData[8];
         for (int i = 0; i < 8; i++) {
             requestData[i] = Serial.read();
@@ -157,9 +161,9 @@ void loop() {
         byte functionCode = requestData[1];
         uint16_t startRegister = (requestData[2] << 8) | requestData[3];
         uint16_t endRegister = (requestData[4] << 8) | requestData[5];
-        // We're not using CRC for validation right now but it's there in requestData[6] and requestData[7].
+        uint16_t recievedCRC = ((uint16_t)requestData[6] << 8) | requestData[7];
 
-        if (serverAddress == 2) {
+        if ((recievedCRC == ModRTU_CRC(requestData,6)) && serverAddress == 2) {
             if (functionCode == 0x03) {  // Read holding register
                 if (startRegister == 1 && endRegister == 1) {  // Assuming we're only supporting one register at address 1
                     uint16_t temperature = readTMP36Temperature();
@@ -169,14 +173,12 @@ void loop() {
                     response[2] = 0x02;  // Byte count
                     response[3] = (byte)(temperature >> 8);
                     response[4] = (byte)temperature;
-                    response[5] = 0xaa;
-                    response[6] = 0xd9;
-
-                  //   uint16_t responseCRC = ModRTU_CRC(response, 5);
+                    uint16_t sentCRC = ModRTU_CRC(response, 5);
+                    response[5] = sentCRC;
+                    response[6] = sentCRC << 8;
+                    // response[5] = requestData[6];
+                    // response[6] = requestData[7];
                     Serial.write(response, 7);
-                  //   Serial.write((byte)(responseCRC & 0xFF));
-                  //   Serial.write((byte)(responseCRC >> 8));
-                    Serial.write("\n");
                 }
             }
         }
