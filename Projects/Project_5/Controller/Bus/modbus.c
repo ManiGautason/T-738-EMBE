@@ -302,43 +302,39 @@ int main(int argc, char *argv[]) {
 
         } else if (Command == READ_HOLDING_REGISTERS) {
             createModbusMessage(modbusSendBuffer, ServerAddress, READ_HOLDING_REGISTERS, RegisterAddress, Value);
-            printf("Modbus Sent Message:     ");
+            printf("Modbus Message: ");
             for (int i = 0; i < 8; i++) {
                 printf("%02X ", modbusSendBuffer[i]);
+
             }
-            printf("\n");
             if ((count = write(file, &modbusSendBuffer, 8))<0){
                 perror("Failed to write to the output\n");
                 return -1;
             }
-            // printf("Message transmitted\n");
+            printf("Message transmitted\n");
             usleep(10000);
 
-            // printf("Reading\n");
+            printf("Reading\n");
             if ((count = read(file, (void*)modbusRecieveBuffer, 7)) < 0){
                 perror("Failed to read from the input\n");
                 return -1;
             }
 
-
-            // parseModbusResponse(modbusRecieveBuffer, count);
+            parseModbusResponse(modbusRecieveBuffer, count);
+            for (int i = 0; i < 7; i++) {
+                printf("%02X ", modbusRecieveBuffer[i]);
+            }
             uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[6] << 8) | modbusRecieveBuffer[5];
-            // printf("CRC: %04X\n", recievedCRC);
-            // printf("Checked: %04X\n", ModRTU_CRC(modbusRecieveBuffer,5));
+            printf("CRC: %04X\n", recievedCRC);
+            printf("Checked: %04X\n", ModRTU_CRC(modbusRecieveBuffer,5));
             if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,5)){
-                // printf("CRC OK\n");
-                // printf("Checked: %04X\n", ModRTU_CRC(modbusRecieveBuffer,5));
-                printf("Modbus Received Message: ");
-                for (int i = 0; i < 5; i++) {
-                    printf("%02X ", modbusRecieveBuffer[i]);
-                }
-                printf("%02X ", modbusRecieveBuffer[6]);
-                printf("%02X ", modbusRecieveBuffer[5]);
-                printf("\n");
+                printf("CRC OK\n");
             } else {
                 printf("CRC Error\n");
             }
+
         }
+    }
 
     close(file);
     return 0;
