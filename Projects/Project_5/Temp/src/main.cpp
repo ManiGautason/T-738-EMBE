@@ -174,8 +174,8 @@ void loop() {
                     response[3] = (byte)(temperature >> 8);
                     response[4] = (byte)temperature;
                     uint16_t sentCRC = ModRTU_CRC(response, 5);
-                    response[5] = sentCRC;
-                    response[6] = sentCRC << 8;
+                    response[5] = (uint8_t)(sentCRC & 0xFF);    // Store the low byte of the CRC
+                    response[6] = (uint8_t)((sentCRC >> 8) & 0xFF); // Store the high byte of the CRC
                     // response[5] = requestData[6];
                     // response[6] = requestData[7];
                     Serial.write(response, 7);
