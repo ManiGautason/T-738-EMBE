@@ -184,15 +184,38 @@ void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, ui
 void parseModbusResponse(unsigned char* response, int length) {
     printf("Slave Address: %02X\n", response[0]);
     printf("Function Code: %02X\n", response[1]);
-    printf("Byte Count: %02X\n", response[2]);
 
-    printf("Data: ");
-    for (int i = 3; i < length - 2; i++) {
-        printf("%02X ", response[i]);
+
+    if (response[1] == 0x03){
+        printf("Byte Count: %02X\n", response[2]);
+
+        printf("Data: ");
+        for (int i = 3; i < length - 2; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
+
+        printf("CRC: %02X %02X\n", response[length - 1], response[length - 2]);
     }
-    printf("\n");
 
-    printf("CRC: %02X %02X\n", response[length - 1], response[length - 2]);
+    if (response[1] == 0x06){
+        printf("Byte Count: %02X\n", response[2]);
+
+        printf("Register Address: ");
+        for (int i = 2; i < length - 4; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
+
+        printf("Written Value: ");
+        for (int i = 4; i < length - 2; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
+
+        printf("CRC: %02X %02X\n", response[length - 1], response[length - 2]);
+    }
+
 }
 
 
@@ -233,33 +256,46 @@ int main(int argc, char *argv[]) {
  
         if (Command == WRITE_SINGLE_REGISTER) {
             createModbusMessage(modbusSendBuffer, ServerAddress, WRITE_SINGLE_REGISTER, RegisterAddress, Value);
-            printf("Modbus Message: ");
+            printf("Modbus Sent Message:     ");
             for (int i = 0; i < 8; i++) {
                 printf("%02X ", modbusSendBuffer[i]);
             }
+            printf("\n");
 
 
             if ((count = write(file, &modbusSendBuffer, 8))<0){
                 perror("Failed to write to the output\n");
                 return -1;
             }
-            printf("Message transmitted\n");
+            // printf("Message transmitted\n");
             usleep(10000);
 
-            printf("Reading\n");
-            if ((count = read(file, (void*)modbusRecieveBuffer, 7))<0){
+            // printf("Reading\n");
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
                 perror("Failed to read from the input\n");
                 return -1;
             }
 
-            parseModbusResponse(modbusRecieveBuffer, count);
-            printf("Count%d", count);
-            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[6] << 8) | modbusRecieveBuffer[7];
-            printf("ACRC: %02X\n",modbusRecieveBuffer[6]);
-            printf("BCRC: %02X\n",modbusRecieveBuffer[7]);
-            printf("Checked: %04X\n", ModRTU_CRC(modbusRecieveBuffer,5));
-            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,5)){
-                printf("CRC OK\n");
+            // parseModbusResponse(modbusRecieveBuffer, count);
+            // printf("Count%d\n", count);
+            // printf("%07X\n", modbusRecieveBuffer);
+            // printf("Received reply: ")
+            // for (int i = 0; i < 8; i++) {
+            //     printf("%02X ", modbusRecieveBuffer[i]);
+            // }
+            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            // printf("ACRC: %02X\n",modbusRecieveBuffer[6]);
+            // printf("BCRC: %02X\n",modbusRecieveBuffer[7]);
+            // printf("Checked: %04X\n", ModRTU_CRC(modbusRecieveBuffer,6));
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                // printf("CRC OK\n");
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
             } else {
                 printf("CRC Error\n");
             }

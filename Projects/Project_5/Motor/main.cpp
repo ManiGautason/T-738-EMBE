@@ -43,35 +43,28 @@ void loop() {
         if ((recievedCRC == ModRTU_CRC(requestData,6)) && serverAddress == 1) { 
             if (functionCode == 0x06) {  // Read holding register
                 if (startRegister == 1 ) {  // Assuming we're only supporting one register at address 1
-                  if (endRegister >= 0 && endRegister <= 255) {
-                     analogWrite(11, endRegister); //
-                     byte response[6];
-                     // response[0] = serverAddress;
-                     // response[1] = functionCode;
-                     // response[2] = startRegister;  // Byte count
-                     // response[3] = endRegister;
-
-                     response[0] = serverAddress;
-                     response[1] = functionCode;
-                     response[2] = startRegister << 8;  // Byte count
-                     response[3] = startRegister;
-                     response[4] = endRegister << 8;  // Byte count
-                     response[5] = endRegister;
-                     uint16_t responseCRC = ModRTU_CRC(response, 6);
-                     uint8_t CRChighByte = (uint8_t)(responseCRC >> 8);  // Extract the high byte
-                     uint8_t CRClowByte = (uint8_t)(responseCRC & 0xFF); // Extract the low byte
-
-                     response[6] = CRClowByte;
-                     response[7] = CRChighByte;    
-
-                  //   uint16_t responseCRC = ModRTU_CRC(response, 5);
-                    Serial.write(response, 8);
-                  //   Serial.write((byte)(responseCRC & 0xFF));
-                  //   Serial.write((byte)(responseCRC >> 8));
-                    //Serial.write("\n");
-                  }
+                    if (endRegister >= 0 && endRegister <= 255) {
+                        analogWrite(11, endRegister); //
+                        byte response[8];
+                        response[0] = serverAddress;
+                        response[1] = functionCode;
+                        response[2] = startRegister << 8;  // Byte count
+                        response[3] = startRegister;
+                        response[4] = endRegister << 8;  // Byte count
+                        response[5] = endRegister;
+                        uint16_t sentCRC = ModRTU_CRC(response, 6);
+                        response[6] = (uint8_t)(sentCRC & 0xFF);    // Store the low byte of the CRC
+                        response[7] = (uint8_t)((sentCRC >> 8) & 0xFF); // Store the high byte of the CRC
+                        Serial.write(response, 8);
+                    }
                 }
             }
+
+            if (functionCode != 0x06)
+            {
+                
+            }
+            
         }
     }
 }
