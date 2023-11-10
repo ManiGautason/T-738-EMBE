@@ -5,12 +5,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <syslog.h>
 
 #define WRITE_SINGLE_REGISTER 6
 #define READ_HOLDING_REGISTERS 3
 int file, count;
 
-
+void logMessage(const char* message) {
+    openlog("CANbusService", LOG_PID, LOG_USER);
+    syslog(LOG_INFO, "%s", message);
+    closelog();
+}
 
 void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, uint16_t serverRegister, uint16_t value, uint16_t CRC) {
     buffer[0] = serverAddress;            // Server address (cast to byte)
@@ -44,20 +49,20 @@ void parseModbusResponse(unsigned char* response, int length) {
     printf("CRC: %02X %02X\n", response[length - 2], response[length - 1]);
 }
 
-int CANBusSend(uint16_t COB_ID, uint8_t state, uint8_t node){
-    
+int CANBusSend(uint16_t COB_ID, uint8_t state, uint8_t node) {
     uint8_t sendBuffer[4];
 
     sendBuffer[0] = (uint8_t)(COB_ID >> 8);
-    sendBuffer[1] = (uint8_t)(COB_ID & 0xFF); 
+    sendBuffer[1] = (uint8_t)(COB_ID & 0xFF);
 
     sendBuffer[2] = state;
     sendBuffer[3] = node;
 
-    if ((count = write(file, &sendBuffer, 4))<0){
-                perror("Failed to write to the output\n");
-                return -1;
-            }
+    if ((count = write(file, &sendBuffer, 4)) < 0) {
+        perror("Failed to write to the output\n");
+        logMessage("Error: Failed to send CAN message");
+        return -1;
+    }
     return 0;
 }
 
@@ -66,6 +71,9 @@ int main(int argc, char *argv[]) {
     uint8_t SendBuffer[2];
     uint8_t RecieveBuffer[2];
     uint8_t node;
+
+    // Initialize syslog for logging
+    openlog("CANbusService", LOG_PID, LOG_USER);
 
     if(argc < 3) {
         // argv[2] is not provided, default to 0x00
@@ -77,6 +85,7 @@ int main(int argc, char *argv[]) {
 
     if ((file = open("/dev/ttyS0", O_RDWR | O_NOCTTY)) < 0) {
         perror("UART: Failed to open the file.\n");
+        logMessage("Error: Failed to open UART file");
         return -1;
     }
 
@@ -90,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     cfmakeraw(&options);
     options.c_lflag &= ~ICANON;
-    options.c_cc[VTIME] = 5;  
+    options.c_cc[VTIME] = 3;  
     options.c_cc[VMIN] = 0;   // Read returns immediately with whatever data is available
     options.c_cflag = B115200 | CS8 | CREAD | CLOCAL; // Set baud rate to 115200, 8n1 (no parity)
 
@@ -150,44 +159,44 @@ int main(int argc, char *argv[]) {
                 if(error == -1)
                     printf("Error sending CAN message\n");
                 break;
-                
-            default:
-                printf("Unknown command: 0x%02X\n", state);
+            case 0x00:
                 //Get temperature
                 usleep(10000);
                 CANBusSend(COB_ID, 0x80, 0x02); //Temp Preoperational
                 usleep(10000);
                 CANBusSend(COB_ID, 0x01, 0x02); //Temp Operational
                 usleep(100000);               // Her er maelt delay 270 microsekunder
-                printf("Reading\n");
+                printf("Getting tempereature\n");
                 if ((count = read(file, (void*)RecieveBuffer, 2))<0){
                     perror("Failed to get temperature\n");
                     return -1;
                 }
-                printf("Temperature1: %02X\n", RecieveBuffer[0]);
-                printf("Temperature2: %02X\n", RecieveBuffer[1]);
-                // usleep(10000);
-                // CANBusSend(COB_ID, 0x02, 0x02); //Stop node
+                printf("Temperature recieved: 0X%02X\n", RecieveBuffer[1]);
                 usleep(10000);
 
                 
                 //Send temperature to motor
-                //CANBusSend(COB_ID, 0x80, 0x01); //Motor Preoperational
-                //usleep(10000);
+                printf("Transmitting value: 0X%02X to motor\n", RecieveBuffer[1]);
                 CANBusSend(COB_ID, 0x01, 0x01); //Motor Operational
                 usleep(10000);
                 if ((count = write(file, &RecieveBuffer, 2))<0){
                     perror("Failed to write to the output\n");
                     return -1;
                 }
+                printf("Value sent\n");
                 usleep(10000);
+                break;
         
-                // CANBusSend(COB_ID, 0x02, 0x02); //Stop node
+            default:
+                printf("Unknown command: 0x%02X\n", state);
+                logMessage("Error: Unknown command");
+                
                 break;
         }
 
     }
 
     close(file);
+    closelog();
     return 0;
 }
