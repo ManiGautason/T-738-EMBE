@@ -34,8 +34,7 @@ void loop() {
         byte serverAddress = requestData[0];
         byte functionCode = requestData[1];
         uint16_t startRegister = (requestData[2] << 8) | requestData[3];
-        uint16_t endRegister = (requestData[4] << 8) | requestData[5];
-        // We're not using CRC for validation right now but it's there in requestData[6] and requestData[7].
+        uint16_t endRegister = (requestData[4] << 8) | requestData[5]
         uint16_t recievedCRC = ((uint16_t)requestData[6] << 8) | requestData[7];
 
         if ((recievedCRC == ModRTU_CRC(requestData,6)) && serverAddress == 1) { 
