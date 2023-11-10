@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-const int TMP36_PIN = A0;
-
 // Compute the MODBUS RTU CRC
 uint16_t ModRTU_CRC(uint8_t buf[], int len) {
     uint16_t crc = 0xFFFF;
@@ -59,12 +57,6 @@ void loop() {
                     }
                 }
             }
-
-            if (functionCode != 0x06)
-            {
-                
-            }
-            
         }
     }
 }
