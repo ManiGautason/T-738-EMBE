@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-const int TMP36_PIN = A0;
-
 // Compute the MODBUS RTU CRC
 uint16_t ModRTU_CRC(uint8_t buf[], int len) {
     uint16_t crc = 0xFFFF;
@@ -36,8 +34,7 @@ void loop() {
         byte serverAddress = requestData[0];
         byte functionCode = requestData[1];
         uint16_t startRegister = (requestData[2] << 8) | requestData[3];
-        uint16_t endRegister = (requestData[4] << 8) | requestData[5];
-        // We're not using CRC for validation right now but it's there in requestData[6] and requestData[7].
+        uint16_t endRegister = (requestData[4] << 8) | requestData[5]
         uint16_t recievedCRC = ((uint16_t)requestData[6] << 8) | requestData[7];
 
         if ((recievedCRC == ModRTU_CRC(requestData,6)) && serverAddress == 1) { 
@@ -59,12 +56,6 @@ void loop() {
                     }
                 }
             }
-
-            if (functionCode != 0x06)
-            {
-                
-            }
-            
         }
     }
 }
