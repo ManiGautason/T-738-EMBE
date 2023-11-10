@@ -89,12 +89,13 @@ int main(int argc, char *argv[]) {
     uint8_t modbusRecieveBuffer[8];
 
     if (argc != 5) {
-        printf("Invalid number of arguments, exiting!\n");
+        logMessage("Invalid number of arguments, exiting!");
         return -2;
     }
 
     if ((file = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NDELAY)) < 0) {
-        perror("UART: Failed to open the file.\n");
+        logMessage("UART: Failed to open the file.");
+        perror("UART: Failed to open the file.");
         return -1;
     }
 
@@ -110,47 +111,46 @@ int main(int argc, char *argv[]) {
     tcflush(file, TCIFLUSH);
     tcsetattr(file, TCSANOW, &options);
 
-
     if (argc >= 4) {
         int ServerAddress = atoi(argv[1]);
         int Command = atoi(argv[2]);
         int RegisterAddress = atoi(argv[3]);
         int Value = atoi(argv[4]);
- 
+
         if (Command == WRITE_SINGLE_REGISTER) {
             createModbusMessage(modbusSendBuffer, ServerAddress, WRITE_SINGLE_REGISTER, RegisterAddress, Value);
-            printf("Modbus Sent Message:     ");
+            logMessage("Modbus Sent Message:");
             for (int i = 0; i < 8; i++) {
                 printf("%02X ", modbusSendBuffer[i]);
             }
             printf("\n");
 
-
             if ((count = write(file, &modbusSendBuffer, 8))<0){
-                perror("Failed to write to the output\n");
+                logMessage("Failed to write to the output.");
+                perror("Failed to write to the output");
                 return -1;
             }
             usleep(10000);
 
             if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
-                perror("Failed to read from the input\n");
+                logMessage("Failed to read from the input.");
+                perror("Failed to read from the input");
                 return -1;
             }
 
-            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
-            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
-                printf("Modbus Received Message: ");
+            uint16_t receivedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(receivedCRC == ModRTU_CRC(modbusRecieveBuffer, 6)){
+                logMessage("Modbus Received Message:");
                 for (int i = 0; i < 6; i++) {
                     printf("%02X ", modbusRecieveBuffer[i]);
                 }
-                printf("%02X ", modbusRecieveBuffer[7]);
-                printf("%02X ", modbusRecieveBuffer[6]);                
-                printf("\n");
+                printf("%02X %02X\n", modbusRecieveBuffer[7], modbusRecieveBuffer[6]);
             } else {
+                logMessage("CRC Error in Modbus response.");
                 printf("CRC Error\n");
             }
 
-        } 
+        }
         else if (Command == READ_HOLDING_REGISTERS) {
             createModbusMessage(modbusSendBuffer, ServerAddress, READ_HOLDING_REGISTERS, RegisterAddress, Value);
             printf("Modbus Sent Message:     ");
