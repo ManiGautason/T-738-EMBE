@@ -5,19 +5,29 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <syslog.h>
 
 #define WRITE_SINGLE_REGISTER 6
 #define READ_HOLDING_REGISTERS 3
 int file, count;
 
-void logMessage(const char* message) {
-    openlog("CANbusService", LOG_PID, LOG_USER);
-    syslog(LOG_INFO, "%s", message);
-    closelog();
+// Compute the MODBUS RTU CRC
+uint16_t ModRTU_CRC(uint8_t buf[], int len) {
+    uint16_t crc = 0xFFFF;
+    for (int pos = 0; pos < len; pos++) {
+        crc ^= (uint16_t)buf[pos]; // XOR byte into least sig. byte of crc
+        for (int i = 8; i != 0; i--) { // Loop over each bit
+            if ((crc & 0x0001) != 0) { // If the LSB is set
+                crc >>= 1; // Shift right and XOR 0xA001
+                crc ^= 0xA001;
+            }
+            else // Else LSB is not set
+                crc >>= 1; // Just shift right
+        }
+    }
+    return crc;
 }
 
-void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, uint16_t serverRegister, uint16_t value, uint16_t CRC) {
+void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, uint16_t serverRegister, uint16_t value) {
     buffer[0] = serverAddress;            // Server address (cast to byte)
     buffer[1] = cmd; // Function code (for writing a single register)
 
@@ -30,6 +40,7 @@ void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, ui
 
 
     // CRC (16-bit value, little-endian format)
+    uint16_t CRC = ModRTU_CRC(buffer,6);
     buffer[6] = (uint8_t)((CRC >> 8) & 0xFF); // High byte of CRC(CRC & 0xFF);       // Low byte of CRC
     buffer[7] = (uint8_t)(CRC & 0xFF);       // Low byte of CRC
 }
@@ -38,165 +49,347 @@ void createModbusMessage(uint8_t* buffer, uint8_t serverAddress, uint8_t cmd, ui
 void parseModbusResponse(unsigned char* response, int length) {
     printf("Slave Address: %02X\n", response[0]);
     printf("Function Code: %02X\n", response[1]);
-    printf("Byte Count: %02X\n", response[2]);
 
-    printf("Data: ");
-    for (int i = 3; i < length - 2; i++) {
-        printf("%02X ", response[i]);
+
+    if (response[1] == 0x03){
+        printf("Byte Count: %02X\n", response[2]);
+
+        printf("Data: ");
+        for (int i = 3; i < length - 2; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
+
+        printf("CRC: %02X %02X\n", response[length - 1], response[length - 2]);
     }
-    printf("\n");
 
-    printf("CRC: %02X %02X\n", response[length - 2], response[length - 1]);
-}
+    if (response[1] == 0x06){
+        printf("Byte Count: %02X\n", response[2]);
 
-int CANBusSend(uint16_t COB_ID, uint8_t state, uint8_t node) {
-    uint8_t sendBuffer[4];
+        printf("Register Address: ");
+        for (int i = 2; i < length - 4; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
 
-    sendBuffer[0] = (uint8_t)(COB_ID >> 8);
-    sendBuffer[1] = (uint8_t)(COB_ID & 0xFF);
+        printf("Written Value: ");
+        for (int i = 4; i < length - 2; i++) {
+            printf("%02X ", response[i]);
+        }
+        printf("\n");
 
-    sendBuffer[2] = state;
-    sendBuffer[3] = node;
-
-    if ((count = write(file, &sendBuffer, 4)) < 0) {
-        perror("Failed to write to the output\n");
-        logMessage("Error: Failed to send CAN message");
-        return -1;
+        printf("CRC: %02X %02X\n", response[length - 1], response[length - 2]);
     }
-    return 0;
+    
 }
 
 int main(int argc, char *argv[]) {
-    int error = 0;
-    uint8_t SendBuffer[2];
-    uint8_t RecieveBuffer[2];
-    uint8_t node;
 
-    // Initialize syslog for logging
-    openlog("CANbusService", LOG_PID, LOG_USER);
+    uint8_t modbusSendBuffer[8];
+    uint8_t modbusRecieveBuffer[8];
 
-    if(argc < 3) {
-        // argv[2] is not provided, default to 0x00
-        node = 0x00;
-    } else {
-        // Convert argv[2] to an integer
-        node = (uint8_t)strtol(argv[2], NULL, 16);
+    if (argc != 5) {
+        printf("Invalid number of arguments, exiting!\n");
+        return -2;
     }
 
-    if ((file = open("/dev/ttyS0", O_RDWR | O_NOCTTY)) < 0) {
+    if ((file = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NDELAY)) < 0) {
         perror("UART: Failed to open the file.\n");
-        logMessage("Error: Failed to open UART file");
         return -1;
     }
 
     struct termios options;
 
-    if (tcgetattr(file, &options) != 0) {
-        perror("UART: Failed to get attributes.\n");
-        close(file);
-        return -1;
-    }
-
-    cfmakeraw(&options);
+    tcgetattr(file, &options);
+    cfmakeraw(&options);            // set as raw
     options.c_lflag &= ~ICANON;
-    options.c_cc[VTIME] = 3;  
-    options.c_cc[VMIN] = 0;   // Read returns immediately with whatever data is available
-    options.c_cflag = B115200 | CS8 | CREAD | CLOCAL; // Set baud rate to 115200, 8n1 (no parity)
-
+    options.c_cc[VTIME] = 0;  
+    options.c_cc[VMIN] = 8;
+    options.c_cflag = B115200 | CS8 | CREAD | CLOCAL;
+    options.c_iflag = IGNPAR | ICRNL;
     tcflush(file, TCIFLUSH);
-
-    if (tcsetattr(file, TCSANOW, &options) != 0) {
-        perror("UART: Failed to set attributes.\n");
-        close(file);
-        return -1;
-    }
+    tcsetattr(file, TCSANOW, &options);
 
 
-    if (argc >= 1) {
-        
-//      +--------+-----------------+-----------------+
-//      | COB-ID |   Data Byte 0   |   Data Byte 1   |
-//      +--------+-----------------+-----------------+
-//      | 0x000  | Requested state | Addressed node  |
-//      +--------+-----------------+-----------------+
+    if (argc >= 4) {
+        int ServerAddress = atoi(argv[1]);
+        int Command = atoi(argv[2]);
+        int RegisterAddress = atoi(argv[3]);
+        int Value = atoi(argv[4]);
+ 
+        if (Command == WRITE_SINGLE_REGISTER) {
+            createModbusMessage(modbusSendBuffer, ServerAddress, WRITE_SINGLE_REGISTER, RegisterAddress, Value);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
 
-        uint16_t COB_ID = 0x000;
-        uint8_t state = (uint8_t)strtol(argv[1], NULL, 16); // Convert hex string to an integer
 
-        
-        switch(state){
-            case 0x01:
-                printf("Command: %02X, Set node operational\n", state);
-                error = CANBusSend(COB_ID, state, node);
-                if(error == -1)
-                    printf("Error sending CAN message\n");
-                break;
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
 
-            case 0x02:
-                printf("Command: %02X, Stop node\n", state);
-                error = CANBusSend(COB_ID, state, node);
-                if(error == -1)
-                    printf("Error sending CAN message\n");
-                break;
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
 
-            case 0x80:
-                printf("Command: %02X, Set node pre-operational\n", state);
-                error = CANBusSend(COB_ID, state, node);     
-                if(error == -1)
-                    printf("Error sending CAN message\n");   
-                break;
-
-            case 0x81:
-                printf("Command: %02X\n, Reset node", state);
-                error = CANBusSend(COB_ID, state, node);
-                if(error == -1)
-                    printf("Error sending CAN message\n");
-                break;
-
-            case 0x82:
-                printf("Command: %02X\n, Reset communications", state);
-                error = CANBusSend(COB_ID, state, node);
-                if(error == -1)
-                    printf("Error sending CAN message\n");
-                break;
-            case 0x00:
-                //Get temperature
-                usleep(10000);
-                CANBusSend(COB_ID, 0x80, 0x02); //Temp Preoperational
-                usleep(10000);
-                CANBusSend(COB_ID, 0x01, 0x02); //Temp Operational
-                usleep(100000);               // Her er maelt delay 270 microsekunder
-                printf("Getting tempereature\n");
-                if ((count = read(file, (void*)RecieveBuffer, 2))<0){
-                    perror("Failed to get temperature\n");
-                    return -1;
+            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
                 }
-                printf("Temperature recieved: 0X%02X\n", RecieveBuffer[1]);
-                usleep(10000);
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
 
-                
-                //Send temperature to motor
-                printf("Transmitting value: 0X%02X to motor\n", RecieveBuffer[1]);
-                CANBusSend(COB_ID, 0x01, 0x01); //Motor Operational
-                usleep(10000);
-                if ((count = write(file, &RecieveBuffer, 2))<0){
-                    perror("Failed to write to the output\n");
-                    return -1;
+        } 
+        else if (Command == READ_HOLDING_REGISTERS) {
+            createModbusMessage(modbusSendBuffer, ServerAddress, READ_HOLDING_REGISTERS, RegisterAddress, Value);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 7)) < 0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[6] << 8) | modbusRecieveBuffer[5];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,5)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 5; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
                 }
-                printf("Value sent\n");
-                usleep(10000);
-                break;
-        
-            default:
-                printf("Unknown command: 0x%02X\n", state);
-                logMessage("Error: Unknown command");
-                
-                break;
+                printf("%02X ", modbusRecieveBuffer[6]);
+                printf("%02X ", modbusRecieveBuffer[5]);
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+        } 
+        else if(Command == 1){ // Control task that reads a value from one Arduino that controls an action on the other Arduino
+            printf("============== Control task =================\n");
+            // Set temperature sensor in preop state   
+            createModbusMessage(modbusSendBuffer, 2, 6, 0, 80);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+
+
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            uint16_t recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+            // Set temperature sensor in op state
+            createModbusMessage(modbusSendBuffer, 2, 6, 0, 1);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+
+
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+
+
+            // Read temperature sensor value
+            createModbusMessage(modbusSendBuffer, 2, 3, 2, 2);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 7)) < 0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            recievedCRC = ((uint16_t)modbusRecieveBuffer[6] << 8) | modbusRecieveBuffer[5];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,5)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 5; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[6]);
+                printf("%02X ", modbusRecieveBuffer[5]);
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+            // Get value from recieved buffer
+            uint8_t pwm = modbusRecieveBuffer[4];
+
+            // Set motor in pre operation state
+            createModbusMessage(modbusSendBuffer, 1, 6, 0, 80);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+
+
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+            // set motor in operational state
+            createModbusMessage(modbusSendBuffer, 1, 6, 0, 1);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+
+
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+            // set PWM value
+            createModbusMessage(modbusSendBuffer, 1, 6, 1, pwm);
+            printf("Modbus Sent Message:     ");
+            for (int i = 0; i < 8; i++) {
+                printf("%02X ", modbusSendBuffer[i]);
+            }
+            printf("\n");
+
+
+            if ((count = write(file, &modbusSendBuffer, 8))<0){
+                perror("Failed to write to the output\n");
+                return -1;
+            }
+            usleep(10000);
+
+            if ((count = read(file, (void*)modbusRecieveBuffer, 8))<0){
+                perror("Failed to read from the input\n");
+                return -1;
+            }
+
+            recievedCRC = ((uint16_t)modbusRecieveBuffer[7] << 8) | modbusRecieveBuffer[6];
+            if(recievedCRC == ModRTU_CRC(modbusRecieveBuffer,6)){
+                printf("Modbus Received Message: ");
+                for (int i = 0; i < 6; i++) {
+                    printf("%02X ", modbusRecieveBuffer[i]);
+                }
+                printf("%02X ", modbusRecieveBuffer[7]);
+                printf("%02X ", modbusRecieveBuffer[6]);                
+                printf("\n");
+            } else {
+                printf("CRC Error\n");
+            }
+
+
         }
-
     }
-
     close(file);
-    closelog();
     return 0;
 }
